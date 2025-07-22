@@ -53,7 +53,7 @@
 <meta property="og:description" content="写作背景在开始技术实践之前，先简单说明一下这篇文章的写作背景。目前网上关于Tauri构建macOS应用的完整指南相对较少，特别是涉及代码签名和公证的详细实践步骤。本文的主要目的有两个：  个人记录 - 作为自己在Tauri开发过程中的经验总结和技术备忘 社区贡献 - 希望能为同样遇到macOS构建问题的开发者提供一个完整的解决方案  为什么需要代码签名和公证？当我们开发完成一个Tauri应用并准备">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-06-14T09:35:35.000Z">
-<meta property="article:modified_time" content="2025-07-19T10:05:42.614Z">
+<meta property="article:modified_time" content="2025-07-22T06:56:09.778Z">
 <meta property="article:author" content="木 直">
 <meta property="article:tag" content="Tauri">
 <meta property="article:tag" content="macOS">
@@ -68,13 +68,13 @@
 
     
     
-    
-        <link rel="stylesheet" id="hl-default-theme" href="/css/highlight/hljs.css" media="none" >
+        <link rel="stylesheet" id="hl-default-theme" href="/css/highlight/highlight.css" media="none" >
         
-            <link rel="stylesheet" id="hl-dark-theme" href="/css/highlight/hljs.dark.css" media="none">
+            <link rel="stylesheet" id="hl-dark-theme" href="/css/highlight/highlight.dark.css" media="none">
         
     
 
+    
     
 
     
@@ -177,7 +177,7 @@
 
     <aside class="post-side">
         <div class="post-side__toc">
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">2.3.</span> <span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-number">4.1.2.</span> <span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-number">4.1.3.</span> <span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-number">4.1.4.</span> <span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">4.2.</span> <span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-number">4.2.1.</span> <span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">4.2.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-number">4.2.3.</span> <span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-number">4.3.</span> <span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-number">4.3.1.</span> <span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-number">4.3.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-number">5.</span> <span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">6.</span> <span class="toc-text">常见问题与排查</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">2.3.</span> <span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-number">4.1.2.</span> <span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-number">4.1.3.</span> <span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-number">4.1.4.</span> <span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">4.2.</span> <span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-number">4.2.1.</span> <span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">4.2.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-number">4.2.3.</span> <span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-number">4.3.</span> <span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-number">4.3.1.</span> <span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-number">4.3.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-number">5.</span> <span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#staple-and-validate-action-failed-Error-65-%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-number">6.0.1.</span> <span class="toc-text">staple and validate action failed! Error 65 解决办法</span></a></li></ol></li></ol></li></ol>
         </div>
     </aside>
     <a class="btn-toc button" id="btn-toc" tabindex="0">
@@ -187,7 +187,7 @@
     </a>
     <div class="toc-menus" id="toc-menus">
         <div class="toc-title">Article Directory</div>
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">2.3.</span> <span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-number">4.1.2.</span> <span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-number">4.1.3.</span> <span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-number">4.1.4.</span> <span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">4.2.</span> <span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-number">4.2.1.</span> <span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">4.2.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-number">4.2.3.</span> <span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-number">4.3.</span> <span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-number">4.3.1.</span> <span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-number">4.3.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-number">5.</span> <span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">6.</span> <span class="toc-text">常见问题与排查</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">2.3.</span> <span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">3.</span> <span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-number">4.1.2.</span> <span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-number">4.1.3.</span> <span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-number">4.1.4.</span> <span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">4.2.</span> <span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-number">4.2.1.</span> <span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">4.2.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-number">4.2.3.</span> <span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-number">4.3.</span> <span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-number">4.3.1.</span> <span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-number">4.3.2.</span> <span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-number">5.</span> <span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#staple-and-validate-action-failed-Error-65-%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-number">6.0.1.</span> <span class="toc-text">staple and validate action failed! Error 65 解决办法</span></a></li></ol></li></ol></li></ol>
     </div>
 
 
@@ -266,7 +266,7 @@
 <p>证书导入钥匙串后，可以在“钥匙串访问”应用的“我的证书”标签下，找到你的证书条目，名称即为签名标识（如：<code>Developer ID Application: 你的名字 (XXXXXXXXXX)</code>）。你也可以在终端执行以下命令，列出所有可用的签名标识：</p>
 <pre><code class="hljs bash">security find-identity -v -p codesigning</code></pre>
 
-<p>输出结果中类似于 <code>1) 959FA8D34C7C21F1EE4A439A231A986AE684358C &quot;Developer ID Application: 你的名字 (XXXXXXXXXX)&quot;</code>，其中最前面的那串大写字母和数字就是证书的 SHA-1 指纹。</p>
+<p>输出结果中类似于 <code>1) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX &quot;Developer ID Application: 你的名字 (XXXXXXXXXX)&quot;</code>，其中最前面的那串大写字母和数字就是证书的 SHA-1 指纹。</p>
 <blockquote>
 <p>你可以将 <code>APPLE_SIGNING_IDENTITY</code> 设置为证书的完整名称（如：</p>
 <pre><code class="hljs bash">APPLE_SIGNING_IDENTITY=<span class="hljs-string">&quot;Developer ID Application: 你的名字 (XXXXXXXXXX)&quot;</span></code></pre>
@@ -334,30 +334,43 @@
 <pre><code class="hljs bash"><span class="hljs-built_in">env</span> | grep APPLE</code></pre>
 
 <p>确保输出中包含了你设置的所有证书、公证等相关变量。</p>
-<h2 id="常见问题与排查"><a href="#常见问题与排查" class="headerlink" title="常见问题与排查"></a>常见问题与排查</h2><ul>
-<li><strong>签名失败</strong>：优先检查证书是否导入、<code>APPLE_SIGNING_IDENTITY</code> 是否唯一且正确。</li>
-<li><strong>公证失败</strong>：确认 Apple ID、App 专用密码、Team ID、API 密钥等信息无误，且网络畅通。</li>
-<li><strong>环境变量未生效</strong>：使用 <code>env | grep APPLE</code> 检查变量，或在 CI&#x2F;CD 脚本中显式导出。</li>
-<li><strong>证书相关报错</strong>：检查证书是否过期、是否为 Developer ID Application 类型，或是否有多个同名证书。还要注意本机钥匙串中是否缺少 Apple 根证书或中间证书（如 Apple G3 根证书、WWDR 中间证书等），证书链不完整也会导致签名、公证失败。可前往 <a target="_blank" rel="noopener" href="https://www.apple.com/certificateauthority/">Apple 官方证书页面</a> 下载并安装缺失的根证书和中间证书。</li>
-<li><strong>The staple and validate action failed! Error 65</strong>：<ul>
-<li>该错误通常是因为缺少 Apple G3 根证书或信任设置不正确导致的。</li>
-<li>解决方法：<ol>
-<li>访问 <a target="_blank" rel="noopener" href="https://www.apple.com/certificateauthority/AppleRootCA-G3.cer">AppleRootCA-G3.cer</a> 下载并安装 G3 根证书。</li>
-<li>安装后，进入“钥匙串访问”，找到该证书，将其信任设置为<strong>“使用系统默认”</strong>。<blockquote>
-<p><strong>注意：</strong> 一定要设置为“使用系统默认”，设置为“始终信任”会导致公证流程失败，必须是“使用系统默认”。</p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><blockquote>
+<p>如遇签名或公证失败，优先检查证书、环境变量（可用 env | grep APPLE 检查）、Apple ID 及密钥信息是否正确，并确保钥匙串中 Apple 根证书与中间证书完整（可前往 Apple 官方证书页面 下载缺失证书）。</p>
 </blockquote>
-</li>
-<li>重新执行公证流程。</li>
+<h4 id="staple-and-validate-action-failed-Error-65-解决办法"><a href="#staple-and-validate-action-failed-Error-65-解决办法" class="headerlink" title="staple and validate action failed! Error 65 解决办法"></a>staple and validate action failed! Error 65 解决办法</h4><p>该错误多因 Apple G3 根证书缺失或信任设置不当导致。请按如下步骤排查：</p>
+<ol>
+<li>访问 <a target="_blank" rel="noopener" href="https://www.apple.com/certificateauthority/AppleRootCA-G3.cer">AppleRootCA-G3.cer</a> 下载并安装 Apple G3 根证书。</li>
+<li>安装后，打开“钥匙串访问”，在“系统”钥匙串中找到“Apple Root CA - G3”证书。</li>
+<li>右键点击证书，选择“显示简介”，在“信任”选项中，将“使用此证书时”设置为<strong>“使用系统默认”</strong>（切勿选择“始终信任”）。</li>
+<li>关闭窗口保存设置，重启“钥匙串访问”或电脑。</li>
+<li>重新执行 Tauri 的公证流程。</li>
 </ol>
-</li>
-</ul>
-</li>
-<li><strong>其它疑难杂症</strong>：建议多参考 Tauri 官方文档和 GitHub Issues，或在社区提问。</li>
-</ul>
+<blockquote>
+<p><strong>特别提醒：</strong><br>“始终信任”会导致 Apple 公证服务无法正确识别证书链，务必选择“使用系统默认”。</p>
+</blockquote>
+<p>如仍有问题，建议检查证书链完整性，并参考 Tauri 官方文档或社区讨论。</p>
 
     </div>
-     
-    <div class="post-footer__meta"><p>updated at 2025-07-19</p></div> 
+    
+    <div class="post__license">
+        <p>
+            <strong>Author: </strong>Yanko
+        </p>
+        <p>
+            <strong>
+                Permalink: 
+            </strong>
+            <a href="https://74hz.github.io/2025/06/14/Tauri-MacOS%E5%BA%94%E7%94%A8%E6%9E%84%E5%BB%BA%E6%8C%87%E5%8D%97%EF%BC%9A%E4%BB%8E%E6%89%93%E5%8C%85%E3%80%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%88%B0%E5%85%AC%E8%AF%81%E5%AE%9E%E8%B7%B5/">https://74hz.github.io/2025/06/14/Tauri-MacOS%E5%BA%94%E7%94%A8%E6%9E%84%E5%BB%BA%E6%8C%87%E5%8D%97%EF%BC%9A%E4%BB%8E%E6%89%93%E5%8C%85%E3%80%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%88%B0%E5%85%AC%E8%AF%81%E5%AE%9E%E8%B7%B5/</a>
+        </p>
+        
+            <strong>
+                <p>如需转载或参考本文内容，请注明出处。</p>
+
+            </strong>
+        
+    </div>
+ 
+    <div class="post-footer__meta"><p>updated at 2025-07-22</p></div> 
     <div class="post-entry__tags"><a href="/tags/Tauri/" class="post-tags__link button"># Tauri</a><a href="/tags/macOS/" class="post-tags__link button"># macOS</a><a href="/tags/%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D/" class="post-tags__link button"># 代码签名</a><a href="/tags/%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81/" class="post-tags__link button"># 软件公证</a></div> 
 </article>
 
@@ -500,11 +513,6 @@
 
  
     
-        
-        <p class="footer-copyright">
-            Copyright © 2025 <a href="/">Yanko</a>
-        </p>
-    
     
 <!--    <p>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme - <a href="https://github.com/ChrAlpha/hexo-theme-cards" target="_blank">Cards</a></p>-->
 </footer>
@@ -529,6 +537,10 @@
  
 
 
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+        data-cf-beacon='{"token": "f51baaf9791c4b7fbb0b3d27699d779c"}'></script>
+    </script>
+    
 
  
 
