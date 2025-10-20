@@ -1262,7 +1262,7 @@ overflows table td {
   display: none;
   width: calc((100vw - 776px) / 2 - 12.6px);
   height: calc(100vh - 60px * 2 - 20px);
-  padding-left: 0.6rem;
+  padding-left: 1rem;
 }
 @media screen and (max-width: 1246px) {
   .post-side {
