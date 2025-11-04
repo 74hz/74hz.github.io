@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+
+    
+
+    <!-- 渲染优化 -->
+    <meta name="renderer" content="webkit">
+    <meta name="force-rendering" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="HandheldFriendly" content="True" >
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--icon-->
+
+    
+        <link rel="shortcut icon" href="/favicon/favicon.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon_16.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon_32.ico">
+    
+    
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple_touch_icon.png">
+    
+    
+        <link rel="mask-icon" href="/favicon/favicon_32.ico">
+    
+
+
+    <!-- meta -->
+
+
+<title>Tauri MacOS应用构建指南：从打包、代码签名到公证实践 | Yanko</title>
+
+
+    <meta name="keywords" content="Tauri, macOS, 代码签名, 软件公证">
+
+
+
+
+    <!-- OpenGraph -->
+ 
+    <meta name="description" content="写作背景在开始技术实践之前，先简单说明一下这篇文章的写作背景。目前网上关于Tauri构建macOS应用的完整指南相对较少，特别是涉及代码签名和公证的详细实践步骤。本文的主要目的有两个：  个人记录 - 作为自己在Tauri开发过程中的经验总结和技术备忘 社区贡献 - 希望能为同样遇到macOS构建问题的开发者提供一个完整的解决方案  为什么需要代码签名和公证？当我们开发完成一个Tauri应用并准备">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tauri MacOS应用构建指南：从打包、代码签名到公证实践">
+<meta property="og:url" content="https://74hz.github.io/article/274a96aab328/index.html">
+<meta property="og:site_name" content="Yanko">
+<meta property="og:description" content="写作背景在开始技术实践之前，先简单说明一下这篇文章的写作背景。目前网上关于Tauri构建macOS应用的完整指南相对较少，特别是涉及代码签名和公证的详细实践步骤。本文的主要目的有两个：  个人记录 - 作为自己在Tauri开发过程中的经验总结和技术备忘 社区贡献 - 希望能为同样遇到macOS构建问题的开发者提供一个完整的解决方案  为什么需要代码签名和公证？当我们开发完成一个Tauri应用并准备">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-07-23T03:26:21.000Z">
+<meta property="article:modified_time" content="2025-10-11T15:25:29.291Z">
+<meta property="article:author" content="木 直">
+<meta property="article:tag" content="Tauri">
+<meta property="article:tag" content="macOS">
+<meta property="article:tag" content="代码签名">
+<meta property="article:tag" content="软件公证">
+<meta name="twitter:card" content="summary_large_image">
+
+
+    
+<link rel="stylesheet" href="/css/style/main.css">
+ 
+
+    
+    
+    
+        <link rel="stylesheet" id="hl-default-theme" href="/css/highlight/hljs.css" media="none" >
+        
+            <link rel="stylesheet" id="hl-dark-theme" href="/css/highlight/hljs.dark.css" media="none">
+        
+    
+
+    
+
+    
+    
+<link rel="stylesheet" href="/css/style/dark.css">
+
+    
+<script src="/js/darkmode.js"></script>
+
+
+
+     
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ 
+
+    <!-- custom head -->
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+    <body>
+        <div id="app" tabindex="-1">
+            <header class="header">
+    <div class="header__left">
+        <a href="/" class="button">
+            <span class="logo__text">Yanko&#39;s Blog</span>
+        </a>
+    </div>
+    <div class="header__right">
+        
+            <div class="navbar__menus">
+                
+                    <a href="/" class="navbar-menu button">首页</a>
+                
+                    <a href="/categories/" class="navbar-menu button">分类</a>
+                
+                    <a href="/tags/" class="navbar-menu button">标签</a>
+                
+                    <a href="/archives/" class="navbar-menu button">归档</a>
+                
+                    <a href="/friends/" class="navbar-menu button">友链</a>
+                
+            </div>
+        
+        
+        
+    <a href="/search/" id="btn-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="32"><path d="M192 448c0-141.152 114.848-256 256-256s256 114.848 256 256-114.848 256-256 256-256-114.848-256-256z m710.624 409.376l-206.88-206.88A318.784 318.784 0 0 0 768 448c0-176.736-143.264-320-320-320S128 271.264 128 448s143.264 320 320 320a318.784 318.784 0 0 0 202.496-72.256l206.88 206.88 45.248-45.248z"></path></svg>
+    </a>
+
+
+        
+        
+    <a href="javaScript:void(0);" id="btn-toggle-dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </a>
+
+
+        
+            <a class="dropdown-icon button" id="btn-dropdown" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width='24' height='24' fill="none" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314c-0.41,0-0.743,0.333-0.743,0.743C2.571,4.467,2.904,4.8,3.314,4.8z M16.686,15.2H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,15.2,16.686,15.2z M16.686,9.257H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,9.257,16.686,9.257z"></path></svg></a>
+            <div class="dropdown-menus" id="dropdown-menus">
+                
+                    <a href="/" class="dropdown-menu button">首页</a>
+                
+                    <a href="/categories/" class="dropdown-menu button">分类</a>
+                
+                    <a href="/tags/" class="dropdown-menu button">标签</a>
+                
+                    <a href="/archives/" class="dropdown-menu button">归档</a>
+                
+                    <a href="/friends/" class="dropdown-menu button">友链</a>
+                
+            </div>
+        
+    </div>
+</header>
+
+
+            <main class="main">
+    
+
+<div class="post-title">
+    <h1 class="post-title__text">
+        Tauri MacOS应用构建指南：从打包、代码签名到公证实践
+    </h1>
+    <div class="post-title__meta">
+        <a href="/archives/2025/07/" class="post-meta__date button">2025-07-23</a>
+        
+    <span class="separate-dot"></span><a href="/categories/%E5%89%8D%E7%AB%AF/" class="button">前端</a>
+
+ 
+        
+    
+     
+    <span id="busuanzi_container_page_pv" hidden>
+        <span class="separate-dot"></span>
+        <span></span>
+        <span id="busuanzi_value_page_pv"></span>
+        <span>Views</span>
+    </span>
+
+
+
+ 
+
+ 
+    </div>
+</div>
+
+
+    <aside class="post-side">
+        <div class="post-side__toc">
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#staple-and-validate-action-failed-Error-65-%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-text">staple and validate action failed! Error 65 解决办法</span></a></li></ol></li></ol></li></ol>
+        </div>
+    </aside>
+    <a class="btn-toc button" id="btn-toc" tabindex="0">
+        <svg viewBox="0 0 1024 1024" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M128 256h64V192H128zM320 256h576V192H320zM128 544h64v-64H128zM320 544h576v-64H320zM128 832h64v-64H128zM320 832h576v-64H320z" fill="currentColor"></path>
+        </svg>
+    </a>
+    <div class="toc-menus" id="toc-menus">
+        <div class="toc-title">Article Directory</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E4%BD%9C%E8%83%8C%E6%99%AF"><span class="toc-text">写作背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E5%92%8C%E5%85%AC%E8%AF%81%EF%BC%9F"><span class="toc-text">为什么需要代码签名和公证？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">代码签名的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">软件公证的必要性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-text">解决方案的价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tauri-%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D%E4%B8%8E%E5%85%AC%E8%AF%81%E6%89%80%E9%9C%80%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">Tauri 代码签名与公证所需环境变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%81%E4%B9%A6%E7%94%B3%E8%AF%B7%E4%B8%8E%E5%AF%BC%E5%85%A5%E6%B5%81%E7%A8%8B"><span class="toc-text">证书申请与导入流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82%EF%BC%88CSR%EF%BC%89"><span class="toc-text">1. 生成证书签名请求（CSR）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%99%BB%E5%BD%95-Apple-Developer-%E7%BD%91%E7%AB%99%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="toc-text">2. 登录 Apple Developer 网站申请证书</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6%E5%88%B0%E9%92%A5%E5%8C%99%E4%B8%B2"><span class="toc-text">3. 导入证书到钥匙串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%AF%BC%E5%87%BA%E8%AF%81%E4%B9%A6%E4%B8%BA-p12"><span class="toc-text">4. 导出证书为 p12</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-Apple-ID-%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-text">获取并配置 Apple ID 的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96-App-%E4%B8%93%E7%94%A8%E5%AF%86%E7%A0%81"><span class="toc-text">1. 获取 App 专用密码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">2. 配置环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E8%8E%B7%E5%8F%96-Apple-Team-ID"><span class="toc-text">3. 获取 Apple Team ID</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%B9%B6%E9%85%8D%E7%BD%AE-App-Store-Connect-%E4%BF%A1%E6%81%AF"><span class="toc-text">获取并配置 App Store Connect 信息</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%94%9F%E6%88%90-App-Store-Connect-API-%E5%AF%86%E9%92%A5"><span class="toc-text">1. 生成 App Store Connect API 密钥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-1"><span class="toc-text">2. 配置环境变量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%A3%80%E6%9F%A5"><span class="toc-text">打包与环境变量检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#staple-and-validate-action-failed-Error-65-%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-text">staple and validate action failed! Error 65 解决办法</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+
+<article class="post post__with-toc content-card">
+    <div class="post__header"></div>
+    <div class="post__content">
+        <h2 id="写作背景"><a href="#写作背景" class="headerlink" title="写作背景"></a>写作背景</h2><p>在开始技术实践之前，先简单说明一下这篇文章的写作背景。目前网上关于Tauri构建macOS应用的完整指南相对较少，特别是涉及代码签名和公证的详细实践步骤。本文的主要目的有两个：</p>
+<ol>
+<li><strong>个人记录</strong> - 作为自己在Tauri开发过程中的经验总结和技术备忘</li>
+<li><strong>社区贡献</strong> - 希望能为同样遇到macOS构建问题的开发者提供一个完整的解决方案</li>
+</ol>
+<h2 id="为什么需要代码签名和公证？"><a href="#为什么需要代码签名和公证？" class="headerlink" title="为什么需要代码签名和公证？"></a>为什么需要代码签名和公证？</h2><p>当我们开发完成一个Tauri应用并准备在macOS上分发时，经常会遇到用户反馈的两个核心问题，这些问题直接影响了应用的用户体验和可信度：</p>
+<h3 id="代码签名的必要性"><a href="#代码签名的必要性" class="headerlink" title="代码签名的必要性"></a>代码签名的必要性</h3><p><strong>问题现象：</strong> 如果不进行代码签名，用户在安装或首次运行应用时会遇到以下错误提示：</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><code class="hljs 1c"><span class="hljs-string">&quot;应用程序&quot;</span> 已损坏，无法打开。您应该将它移到废纸篓。<br></code></pre></td></tr></table></figure>
+
+<p><strong>产生原因：</strong> 这是因为macOS的Gatekeeper安全机制会阻止运行未经Apple认证的应用程序。从macOS 10.15 Catalina开始，Apple进一步加强了对未签名应用的限制，未签名的应用会被标记为”损坏”。</p>
+<p><strong>影响：</strong></p>
+<ul>
+<li>用户无法正常启动应用</li>
+<li>降低用户对应用的信任度</li>
+<li>可能导致用户直接放弃使用</li>
+<li>增加技术支持的工作量</li>
+</ul>
+<h3 id="软件公证的必要性"><a href="#软件公证的必要性" class="headerlink" title="软件公证的必要性"></a>软件公证的必要性</h3><p><strong>问题现象：</strong> 即使进行了代码签名，如果没有进行软件公证，用户仍可能在安装时看到警告：</p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><code class="hljs stata">macOS无法验证此<span class="hljs-keyword">App</span>不包含恶意软件。<br></code></pre></td></tr></table></figure>
+
+<p><strong>产生原因：</strong> 从macOS 10.15开始，Apple要求所有在macOS上分发的软件都必须经过公证（Notarization）。公证是Apple的一项自动化服务，它会扫描你的软件是否包含恶意内容，并为通过检查的软件颁发票证。</p>
+<p><strong>影响：</strong></p>
+<ul>
+<li>用户需要额外的步骤才能安装应用</li>
+<li>显示安全警告会让用户产生疑虑</li>
+<li>可能被误认为是恶意软件</li>
+<li>影响应用的专业形象</li>
+</ul>
+<h3 id="解决方案的价值"><a href="#解决方案的价值" class="headerlink" title="解决方案的价值"></a>解决方案的价值</h3><p>通过正确的代码签名和公证流程，我们可以：</p>
+<ol>
+<li><strong>提升用户体验</strong> - 用户可以无障碍地安装和运行应用</li>
+<li><strong>建立信任关系</strong> - 显示开发者的专业性和对安全的重视</li>
+<li><strong>符合平台规范</strong> - 遵循Apple的分发政策和最佳实践</li>
+<li><strong>减少支持成本</strong> - 避免因安装问题产生的用户咨询</li>
+</ol>
+<p>接下来，我们将详细介绍如何为Tauri应用实现完整的代码签名和公证流程。</p>
+<h2 id="Tauri-代码签名与公证所需环境变量"><a href="#Tauri-代码签名与公证所需环境变量" class="headerlink" title="Tauri 代码签名与公证所需环境变量"></a>Tauri 代码签名与公证所需环境变量</h2><p>在 macOS 上对 Tauri 应用进行签名和公证时，通常需要配置以下环境变量：</p>
+<blockquote>
+<p>下文会详细介绍每个变量的获取方式和来源。</p>
+</blockquote>
+<ul>
+<li><code>APPLE_SIGNING_IDENTITY</code>：签名证书在钥匙串中的名称（签名标识）。</li>
+<li><code>APPLE_CERTIFICATE</code>：从钥匙串导出的 <code>.p12</code> 证书的 base64 字符串（适用于 CI 或没有本地证书时）。</li>
+<li><code>APPLE_CERTIFICATE_PASSWORD</code>：<code>.p12</code> 证书的密码。</li>
+<li><code>APPLE_ID</code>：你的 Apple 账号邮箱（用于公证）。</li>
+<li><code>APPLE_PASSWORD</code>：Apple 账号的 App 专用密码（用于公证）。</li>
+<li><code>APPLE_TEAM_ID</code>：你的 Apple 开发者团队 ID（用于公证）。</li>
+<li><code>APPLE_API_ISSUER</code>：App Store Connect API 的 Issuer ID（用于公证，可选）。</li>
+<li><code>APPLE_API_KEY</code>：App Store Connect API 的密钥 ID（用于公证，可选）。</li>
+<li><code>APPLE_API_KEY_PATH</code>：App Store Connect API 的私钥文件路径（用于公证，可选）。</li>
+<li><code>APPLE_API_KEY_CONTENT</code>：App Store Connect API 的私钥内容（base64，可选）。</li>
+</ul>
+<blockquote>
+<p>说明：</p>
+<ul>
+<li>证书相关变量（如 <code>APPLE_SIGNING_IDENTITY</code>、<code>APPLE_CERTIFICATE</code>、<code>APPLE_CERTIFICATE_PASSWORD</code>）用于应用签名。</li>
+<li>Apple ID 相关变量（如 <code>APPLE_ID</code>、<code>APPLE_PASSWORD</code>、<code>APPLE_TEAM_ID</code>）或 App Store Connect API 相关变量（如 <code>APPLE_API_ISSUER</code>、<code>APPLE_API_KEY</code>、<code>APPLE_API_KEY_PATH</code>）用于应用公证。</li>
+<li>你可以根据实际需求选择 Apple ID 方式或 API 密钥方式进行公证。</li>
+</ul>
+</blockquote>
+<p>详细说明和配置方法可参考 <a target="_blank" rel="noopener" href="https://tauri.org.cn/v1/guides/distribution/sign-macos/">Tauri 官方文档</a>。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="证书申请与导入流程"><a href="#证书申请与导入流程" class="headerlink" title="证书申请与导入流程"></a>证书申请与导入流程</h3><h4 id="1-生成证书签名请求（CSR）"><a href="#1-生成证书签名请求（CSR）" class="headerlink" title="1. 生成证书签名请求（CSR）"></a>1. 生成证书签名请求（CSR）</h4><p>在本地 Mac 上打开“钥匙串访问”，依次点击菜单栏 <code>钥匙串访问 &gt; 证书助理 &gt; 从证书颁发机构请求证书...</code>，填写你的开发者邮箱和常用名称，选择“保存到磁盘”，生成一个 <code>.certSigningRequest</code> 文件。</p>
+<h4 id="2-登录-Apple-Developer-网站申请证书"><a href="#2-登录-Apple-Developer-网站申请证书" class="headerlink" title="2. 登录 Apple Developer 网站申请证书"></a>2. 登录 Apple Developer 网站申请证书</h4><ol>
+<li>进入 <a target="_blank" rel="noopener" href="https://developer.apple.com/account/resources/certificates/list">Apple Developer Certificates</a> 页面。</li>
+<li>点击右上角 “+” 按钮，选择 <code>Developer ID Application</code> 类型。</li>
+<li>上传刚才生成的 <code>.certSigningRequest</code> 文件，提交后即可下载到 <code>.cer</code> 证书文件。</li>
+</ol>
+<p>如果需要签名安装包（.pkg），同理选择 <code>Developer ID Installer</code> 类型申请。其它证书类型请根据实际需求自行了解。</p>
+<h4 id="3-导入证书到钥匙串"><a href="#3-导入证书到钥匙串" class="headerlink" title="3. 导入证书到钥匙串"></a>3. 导入证书到钥匙串</h4><p>双击下载的 <code>.cer</code> 文件，证书会自动导入到“登录”钥匙串。可以在“钥匙串访问”中搜索 <code>Developer ID Application</code> 或你的开发者名称，确认证书已导入。</p>
+<p>证书导入钥匙串后，可以在“钥匙串访问”应用的“我的证书”标签下，找到你的证书条目，名称即为签名标识（如：<code>Developer ID Application: 你的名字 (XXXXXXXXXX)</code>）。你也可以在终端执行以下命令，列出所有可用的签名标识：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">security find-identity -v -p codesigning<br></code></pre></td></tr></table></figure>
+
+<p>输出结果中类似于 <code>1) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX &quot;Developer ID Application: 你的名字 (XXXXXXXXXX)&quot;</code>，其中最前面的那串大写字母和数字就是证书的 SHA-1 指纹。</p>
+<blockquote>
+<p>你可以将 <code>APPLE_SIGNING_IDENTITY</code> 设置为证书的完整名称（如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">APPLE_SIGNING_IDENTITY=<span class="hljs-string">&quot;Developer ID Application: 你的名字 (XXXXXXXXXX)&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>但更推荐直接填写证书的 SHA-1 指纹（即上面命令输出行最前面的那串），例如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">APPLE_SIGNING_IDENTITY=<span class="hljs-string">&quot;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>这样最为精准，也能避免因证书名称变化导致的识别问题。</p>
+<p><strong>注意：</strong><br>如果你的钥匙串中存在多个同名证书（例如多个 <code>Developer ID Application: 你的名字 (XXXXXXXXXX)</code>），直接使用证书名称作为 <code>APPLE_SIGNING_IDENTITY</code> 可能会导致签名时匹配到错误的证书。<br>此时，更推荐使用证书的 SHA-1 指纹，这样可以确保唯一且精准地指定所需证书，避免因重名导致的各种问题。</p>
+</blockquote>
+<h4 id="4-导出证书为-p12"><a href="#4-导出证书为-p12" class="headerlink" title="4. 导出证书为 p12"></a>4. 导出证书为 p12</h4><p>步骤操作：</p>
+<ol>
+<li><p>打开“钥匙串访问”应用，点击左侧“登录”类型，切换到“我的证书”标签。</p>
+</li>
+<li><p>找到你的证书条目，展开后右键点击证书，选择“导出”。</p>
+</li>
+<li><p>选择保存为 <code>.p12</code> 文件，并为导出的证书设置一个密码（建议妥善保存）。</p>
+</li>
+<li><p>在终端运行以下命令，将 <code>.p12</code> 文件转换为 base64 格式：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash">openssl <span class="hljs-built_in">base64</span> -<span class="hljs-keyword">in</span> /your path/certificate.p12 -out certificate.txt<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>打开 <code>certificate.txt</code> 文件，将内容设置为环境变量 <code>APPLE_CERTIFICATE</code> 的值。</p>
+</li>
+<li><p>将导出时设置的证书密码设置为环境变量 <code>APPLE_CERTIFICATE_PASSWORD</code>。</p>
+</li>
+</ol>
+<p>这样可以方便在自动化构建或远程环境中安全使用证书。</p>
+<h3 id="获取并配置-Apple-ID-的信息"><a href="#获取并配置-Apple-ID-的信息" class="headerlink" title="获取并配置 Apple ID 的信息"></a>获取并配置 Apple ID 的信息</h3><p>在完成证书相关操作后，接下来需要准备 Apple ID 及相关信息，以便后续自动化签名和公证流程使用。</p>
+<h4 id="1-获取-App-专用密码"><a href="#1-获取-App-专用密码" class="headerlink" title="1. 获取 App 专用密码"></a>1. 获取 App 专用密码</h4><ol>
+<li>访问 <a target="_blank" rel="noopener" href="https://appleid.apple.com/">Apple 账户管理页面</a> 并登录你的 Apple ID。</li>
+<li>在“登录和安全”部分，找到“App 专用密码”。</li>
+<li>点击“生成 App 专用密码”，并按照页面提示完成操作，保存生成的专用密码。</li>
+</ol>
+<h4 id="2-配置环境变量"><a href="#2-配置环境变量" class="headerlink" title="2. 配置环境变量"></a>2. 配置环境变量</h4><ul>
+<li>将你的 Apple ID 邮箱设置为 <code>APPLE_ID</code> 环境变量。</li>
+<li>将上一步生成的 App 专用密码设置为 <code>APPLE_PASSWORD</code> 环境变量。</li>
+</ul>
+<h4 id="3-获取-Apple-Team-ID"><a href="#3-获取-Apple-Team-ID" class="headerlink" title="3. 获取 Apple Team ID"></a>3. 获取 Apple Team ID</h4><ol>
+<li>登录 <a target="_blank" rel="noopener" href="https://developer.apple.com/account">Apple Developer 账户</a>。</li>
+<li>在“Membership”或“团队”信息页面，可以看到你的 Team ID。</li>
+<li>将 Team ID 设置为 <code>APPLE_TEAM_ID</code> 环境变量。</li>
+</ol>
+<blockquote>
+<p><strong>小贴士：</strong><br>这些环境变量在后续自动化打包、签名、公证等流程中会被频繁用到，建议妥善保存，并避免泄露。</p>
+</blockquote>
+<h3 id="获取并配置-App-Store-Connect-信息"><a href="#获取并配置-App-Store-Connect-信息" class="headerlink" title="获取并配置 App Store Connect 信息"></a>获取并配置 App Store Connect 信息</h3><p>在完成 Apple ID 相关配置后，还需要准备 App Store Connect 的集成密钥信息，以便后续自动化上传、公证等操作。</p>
+<h4 id="1-生成-App-Store-Connect-API-密钥"><a href="#1-生成-App-Store-Connect-API-密钥" class="headerlink" title="1. 生成 App Store Connect API 密钥"></a>1. 生成 App Store Connect API 密钥</h4><ol>
+<li>打开 <a target="_blank" rel="noopener" href="https://appstoreconnect.apple.com/access/users">App Store Connect 用户和访问页面</a> ，切换到“集成”选项卡。</li>
+<li>点击右上角“+”按钮，添加新的密钥信息。</li>
+<li>名字可以自定义，访问权限请选择“开发者”。</li>
+<li>点击“生成”按钮，完成密钥创建。</li>
+</ol>
+<h4 id="2-配置环境变量-1"><a href="#2-配置环境变量-1" class="headerlink" title="2. 配置环境变量"></a>2. 配置环境变量</h4><ul>
+<li>在“集成”页面可以看到“Issuer ID”信息，复制并设置为 <code>APPLE_API_ISSUER</code> 环境变量。</li>
+<li>在有效的密钥列表中，有一列“密钥ID”，复制对应的密钥 ID 信息，并设置为 <code>APPLE_API_KEY</code> 环境变量。</li>
+<li>下载密钥文件（<code>.p8</code>），注意：密钥只能下载一次，且页面刷新后才可见下载按钮。下载后请妥善保存。</li>
+<li>打开下载的密钥文件，将内容设置为 <code>APPLE_API_KEY_CONTENT</code> 环境变量。</li>
+<li>将密钥文件路径（如 <code>/your path/AuthKey_xxx.p8</code>，其中<code>xxx</code>为你的密钥ID）设置为 <code>APPLE_API_KEY_PATH</code> 环境变量。</li>
+</ul>
+<blockquote>
+<p><strong>注意：</strong><br>这些密钥和ID信息非常重要，建议妥善保存并避免泄露。密钥文件只能下载一次，丢失后需重新生成。</p>
+</blockquote>
+<h2 id="打包与环境变量检查"><a href="#打包与环境变量检查" class="headerlink" title="打包与环境变量检查"></a>打包与环境变量检查</h2><p>Tauri 应用打包流程本身较为简单，核心在于前面环境变量的正确配置。打包前请务必确认所有 Apple 相关环境变量已生效。</p>
+<p>你可以在终端执行以下命令，检查环境变量：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">env</span> | grep APPLE<br></code></pre></td></tr></table></figure>
+
+<p>确保输出中包含了你设置的所有证书、公证等相关变量。</p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><blockquote>
+<p>如遇签名或公证失败，优先检查证书、环境变量（可用 env | grep APPLE 检查）、Apple ID 及密钥信息是否正确，并确保钥匙串中 Apple 根证书与中间证书完整（可前往 Apple 官方证书页面 下载缺失证书）。</p>
+</blockquote>
+<h4 id="staple-and-validate-action-failed-Error-65-解决办法"><a href="#staple-and-validate-action-failed-Error-65-解决办法" class="headerlink" title="staple and validate action failed! Error 65 解决办法"></a>staple and validate action failed! Error 65 解决办法</h4><p>该错误多因 Apple G3 根证书缺失或信任设置不当导致。请按如下步骤排查：</p>
+<ol>
+<li>访问 <a target="_blank" rel="noopener" href="https://www.apple.com/certificateauthority/AppleRootCA-G3.cer">AppleRootCA-G3.cer</a> 下载并安装 Apple G3 根证书。</li>
+<li>安装后，打开“钥匙串访问”，在“系统”钥匙串中找到“Apple Root CA - G3”证书。</li>
+<li>右键点击证书，选择“显示简介”，在“信任”选项中，将“使用此证书时”设置为<strong>“使用系统默认”</strong>（切勿选择“始终信任”）。</li>
+<li>关闭窗口保存设置，重启“钥匙串访问”或电脑。</li>
+<li>重新执行 Tauri 的公证流程。</li>
+</ol>
+<blockquote>
+<p><strong>特别提醒：</strong><br>“始终信任”会导致 Apple 公证服务无法正确识别证书链，务必选择“使用系统默认”。</p>
+</blockquote>
+<p>如仍有问题，建议检查证书链完整性，并参考 Tauri 官方文档或社区讨论。</p>
+
+    </div>
+    
+    <div class="post__license">
+        <p>
+            <strong>Author: </strong>Yanko
+        </p>
+        <p>
+            <strong>
+                Permalink: 
+            </strong>
+            <a href="https://74hz.github.io/article/274a96aab328/">https://74hz.github.io/article/274a96aab328/</a>
+        </p>
+        
+            <strong>
+                <p>如需转载或参考本文内容，请注明出处。</p>
+
+            </strong>
+        
+    </div>
+ 
+    <div class="post-footer__meta"><p>updated at 2025-10-11</p></div> 
+    <div class="post-entry__tags"><a href="/tags/Tauri/" class="post-tags__link button"># Tauri</a><a href="/tags/macOS/" class="post-tags__link button"># macOS</a><a href="/tags/%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D/" class="post-tags__link button"># 代码签名</a><a href="/tags/%E8%BD%AF%E4%BB%B6%E5%85%AC%E8%AF%81/" class="post-tags__link button"># 软件公证</a></div> 
+</article>
+
+
+    <div class="nav">
+        <div class="nav__prev">
+            
+                <a href="/article/0967afaca117/" class="nav__link">
+                    <div>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M589.088 790.624L310.464 512l278.624-278.624 45.248 45.248L400.96 512l233.376 233.376z" fill="#808080"></path></svg>
+                    </div>
+                    <div>
+                        <div class="nav__label">
+                            Previous Post
+                        </div>
+                        <div class="nav__title">
+                            现代前端工程化中的SourceMap探析
+                        </div>
+                    </div>
+                </a>
+            
+        </div>
+        <div class="nav__next">
+            
+                <a href="/article/c9a6c86b3515/" class="nav__link">
+                    <div>
+                        <div class="nav__label">
+                            Next Post
+                        </div>
+                        <div class="nav__title">
+                            博客序言
+                        </div>
+                    </div>
+                    <div>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M434.944 790.624l-45.248-45.248L623.04 512l-233.376-233.376 45.248-45.248L713.568 512z" fill="#808080"></path></svg>
+                    </div>
+                </a>
+            
+        </div>
+    </div>
+
+
+
+    <div class="post__comments post__with-toc content-card" id="comment">
+        
+    <h4>Comments</h4>
+    
+    
+    
+    
+    
+    <div class="comments-container">
+        <div id="giscus_container"></div>
+
+        <script>
+            const THEME_AUTO_KEY = 'auto';
+            const THEME_SCHEME_CACHE_KEY = 'user-color-scheme';
+            const containerEl = document.getElementById('giscus_container');
+
+            // 如果是theme：auto，则监听user-color-scheme变更用以动态调整评论组件主题
+            if (THEME_AUTO_KEY === 'auto') {
+                const originalSetItem = localStorage.setItem;
+
+                localStorage.setItem = function(key, value) {
+                    originalSetItem.apply(this, [key, value]);
+
+                    if (THEME_SCHEME_CACHE_KEY === key) {
+                        loadCommentComponent();
+                    }
+                };
+            }
+
+            loadCommentComponent();
+
+            /**
+             * @description 载入评论组件
+             */
+            function loadCommentComponent() {
+                // 清空评论组件容器
+                while (containerEl.firstChild) {
+                    containerEl.removeChild(containerEl.firstChild);
+                }
+
+                const scriptEl = createGiscusScript();
+
+                if (THEME_AUTO_KEY === scriptEl.getAttribute('data-theme')) {
+                    const isDark = window.matchMedia("(prefers-color-scheme: dark)")?.matches;
+                    const theme = localStorage.getItem(THEME_SCHEME_CACHE_KEY) || (isDark ? 'dark' : 'light');
+                    scriptEl.setAttribute('data-theme', theme);
+                }
+
+                containerEl.append(scriptEl);
+            }
+
+            /**
+             * @description 创建Giscus评论组件Script
+             * @returns {HTMLScriptElement}
+             */
+            function createGiscusScript() {
+                const scriptEl = document.createElement('script');
+
+                scriptEl.setAttribute('src', 'https://giscus.app/client.js');
+                scriptEl.setAttribute('data-repo', '74hz/74hz.github.io');
+                scriptEl.setAttribute('data-repo-id', 'R_kgDOMuHdAw');
+                scriptEl.setAttribute('data-category', 'Announcements');
+                scriptEl.setAttribute('data-category-id', 'DIC_kwDOMuHdA84CiVzy');
+                scriptEl.setAttribute('data-mapping', 'pathname');
+                scriptEl.setAttribute('data-strict', '1');
+                scriptEl.setAttribute('data-reactions-enabled', '1');
+                scriptEl.setAttribute('data-emit-metadata', '0');
+                scriptEl.setAttribute('data-input-position', 'top');
+                scriptEl.setAttribute('data-theme', 'auto' );
+                scriptEl.setAttribute('data-lang', 'zh-CN');
+                scriptEl.setAttribute('data-loading', 'lazy');
+                scriptEl.setAttribute('crossorigin', 'anonymous');
+                scriptEl.setAttribute('async', '');
+
+                return scriptEl;
+            }
+        </script>
+    </div>
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+    </div>
+
+
+
+</main>
+
+            <footer class="footer">
+     
+    <a href="#" class="button" id="b2t" aria-label="Back to Top" title="Back to Top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="32" height="32">
+            <path d="M233.376 722.752L278.624 768 512 534.624 745.376 768l45.248-45.248L512 444.128zM192 352h640V288H192z" fill="currentColor"></path>
+        </svg>
+    </a>
+
+    
+
+
+    
+    
+    
+    
+ 
+ 
+
+ 
+    
+    
+<!--    <p>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme - <a href="https://github.com/ChrAlpha/hexo-theme-cards" target="_blank">Cards</a></p>-->
+</footer>
+
+        </div>
+        
+    <script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js"></script>
+    <script>
+        window.lazyLoadOptions = {
+            elements_selector: ".lazy",
+            threshold: 0
+        };
+    </script>
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+        data-cf-beacon='{"token": "f51baaf9791c4b7fbb0b3d27699d779c"}'></script>
+    </script>
+    
+
+ 
+
+
+
+ 
+
+
+    
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    
+
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+
+
+    </body>
+</html>

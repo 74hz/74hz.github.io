@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+
+    
+
+    <!-- 渲染优化 -->
+    <meta name="renderer" content="webkit">
+    <meta name="force-rendering" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="HandheldFriendly" content="True" >
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--icon-->
+
+    
+        <link rel="shortcut icon" href="/favicon/favicon.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon_16.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon_32.ico">
+    
+    
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple_touch_icon.png">
+    
+    
+        <link rel="mask-icon" href="/favicon/favicon_32.ico">
+    
+
+
+    <!-- meta -->
+
+
+<title>现代前端工程化中的SourceMap探析 | Yanko</title>
+
+
+    <meta name="keywords" content="SourceMap, 前端工程化, 调试">
+
+
+
+
+    <!-- OpenGraph -->
+ 
+    <meta name="description" content="一、引言想象这样一个场景：某天凌晨，你接到紧急通知，生产环境的页面出现了严重的 JavaScript 错误，用户无法正常使用。你打开浏览器的开发者工具，看到的错误是这样的： Uncaught TypeError: Cannot read property &amp;#x27;map&amp;#x27; of undefined    at r.a (bundle.min.js:1:45231)    at u (">
+<meta property="og:type" content="article">
+<meta property="og:title" content="现代前端工程化中的SourceMap探析">
+<meta property="og:url" content="https://74hz.github.io/article/0967afaca117/index.html">
+<meta property="og:site_name" content="Yanko">
+<meta property="og:description" content="一、引言想象这样一个场景：某天凌晨，你接到紧急通知，生产环境的页面出现了严重的 JavaScript 错误，用户无法正常使用。你打开浏览器的开发者工具，看到的错误是这样的： Uncaught TypeError: Cannot read property &amp;#x27;map&amp;#x27; of undefined    at r.a (bundle.min.js:1:45231)    at u (">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-2.png">
+<meta property="article:published_time" content="2025-10-11T02:51:25.000Z">
+<meta property="article:modified_time" content="2025-11-04T17:01:34.801Z">
+<meta property="article:author" content="木 直">
+<meta property="article:tag" content="SourceMap">
+<meta property="article:tag" content="前端工程化">
+<meta property="article:tag" content="调试">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-1.png">
+
+
+    
+<link rel="stylesheet" href="/css/style/main.css">
+ 
+
+    
+    
+    
+        <link rel="stylesheet" id="hl-default-theme" href="/css/highlight/hljs.css" media="none" >
+        
+            <link rel="stylesheet" id="hl-dark-theme" href="/css/highlight/hljs.dark.css" media="none">
+        
+    
+
+    
+
+    
+    
+<link rel="stylesheet" href="/css/style/dark.css">
+
+    
+<script src="/js/darkmode.js"></script>
+
+
+
+     
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ 
+
+    <!-- custom head -->
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+    <body>
+        <div id="app" tabindex="-1">
+            <header class="header">
+    <div class="header__left">
+        <a href="/" class="button">
+            <span class="logo__text">Yanko&#39;s Blog</span>
+        </a>
+    </div>
+    <div class="header__right">
+        
+            <div class="navbar__menus">
+                
+                    <a href="/" class="navbar-menu button">首页</a>
+                
+                    <a href="/categories/" class="navbar-menu button">分类</a>
+                
+                    <a href="/tags/" class="navbar-menu button">标签</a>
+                
+                    <a href="/archives/" class="navbar-menu button">归档</a>
+                
+                    <a href="/friends/" class="navbar-menu button">友链</a>
+                
+            </div>
+        
+        
+        
+    <a href="/search/" id="btn-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="32"><path d="M192 448c0-141.152 114.848-256 256-256s256 114.848 256 256-114.848 256-256 256-256-114.848-256-256z m710.624 409.376l-206.88-206.88A318.784 318.784 0 0 0 768 448c0-176.736-143.264-320-320-320S128 271.264 128 448s143.264 320 320 320a318.784 318.784 0 0 0 202.496-72.256l206.88 206.88 45.248-45.248z"></path></svg>
+    </a>
+
+
+        
+        
+    <a href="javaScript:void(0);" id="btn-toggle-dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </a>
+
+
+        
+            <a class="dropdown-icon button" id="btn-dropdown" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width='24' height='24' fill="none" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314c-0.41,0-0.743,0.333-0.743,0.743C2.571,4.467,2.904,4.8,3.314,4.8z M16.686,15.2H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,15.2,16.686,15.2z M16.686,9.257H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,9.257,16.686,9.257z"></path></svg></a>
+            <div class="dropdown-menus" id="dropdown-menus">
+                
+                    <a href="/" class="dropdown-menu button">首页</a>
+                
+                    <a href="/categories/" class="dropdown-menu button">分类</a>
+                
+                    <a href="/tags/" class="dropdown-menu button">标签</a>
+                
+                    <a href="/archives/" class="dropdown-menu button">归档</a>
+                
+                    <a href="/friends/" class="dropdown-menu button">友链</a>
+                
+            </div>
+        
+    </div>
+</header>
+
+
+            <main class="main">
+    
+
+<div class="post-title">
+    <h1 class="post-title__text">
+        现代前端工程化中的SourceMap探析
+    </h1>
+    <div class="post-title__meta">
+        <a href="/archives/2025/10/" class="post-meta__date button">2025-10-11</a>
+        
+    <span class="separate-dot"></span><a href="/categories/%E5%89%8D%E7%AB%AF/" class="button">前端</a>
+
+ 
+        
+    
+     
+    <span id="busuanzi_container_page_pv" hidden>
+        <span class="separate-dot"></span>
+        <span></span>
+        <span id="busuanzi_value_page_pv"></span>
+        <span>Views</span>
+    </span>
+
+
+
+ 
+
+ 
+    </div>
+</div>
+
+
+    <aside class="post-side">
+        <div class="post-side__toc">
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BC%95%E8%A8%80"><span class="toc-text">一、引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SourceMap-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-text">二、SourceMap 基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%80%E4%B9%88%E6%98%AF-SourceMap"><span class="toc-text">2.1 什么是 SourceMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-SourceMap"><span class="toc-text">2.2 为什么需要 SourceMap</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%BD%AC%E6%8D%A2%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">代码转换的必要性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E7%9A%84%E5%9B%B0%E5%A2%83"><span class="toc-text">调试的困境</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SourceMap-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-text">2.3 SourceMap 的工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E5%A6%82%E4%BD%95%E8%AF%86%E5%88%AB-SourceMap"><span class="toc-text">浏览器如何识别 SourceMap</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%98%A0%E5%B0%84%E8%BF%87%E7%A8%8B"><span class="toc-text">映射过程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81SourceMap-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90"><span class="toc-text">三、SourceMap 文件格式深入解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-map-%E6%96%87%E4%BB%B6%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-text">3.1 .map 文件的基本结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%A0%B8%E5%BF%83%E5%AD%97%E6%AE%B5%E8%AF%A6%E8%A7%A3"><span class="toc-text">3.2 核心字段详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-mappings-%E5%AD%97%E6%AE%B5%E5%8E%9F%E7%90%86"><span class="toc-text">3.3 mappings 字段原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-text">基本结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E7%89%B9%E7%82%B9"><span class="toc-text">编码特点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7%E4%B8%AD%E7%9A%84-SourceMap-%E9%85%8D%E7%BD%AE"><span class="toc-text">四、构建工具中的 SourceMap 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Vite-%E7%9A%84-SourceMap-%E9%85%8D%E7%BD%AE"><span class="toc-text">4.1 Vite 的 SourceMap 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%80%89%E9%A1%B9"><span class="toc-text">配置选项</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-text">开发环境配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-text">生产环境配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84-SourceMap-%E7%AD%96%E7%95%A5"><span class="toc-text">五、生产环境的 SourceMap 策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E8%99%91"><span class="toc-text">5.1 安全性考虑</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SourceMap-%E6%B3%84%E9%9C%B2%E7%9A%84%E9%A3%8E%E9%99%A9"><span class="toc-text">SourceMap 泄露的风险</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%A7%81%E6%9C%89%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-text">5.2 私有化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-1%EF%BC%9AHidden-SourceMap-%E9%94%99%E8%AF%AF%E7%9B%91%E6%8E%A7"><span class="toc-text">方案 1：Hidden SourceMap + 错误监控</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-2%EF%BC%9A%E6%9D%A1%E4%BB%B6%E6%80%A7%E8%BF%94%E5%9B%9E-SourceMap"><span class="toc-text">方案 2：条件性返回 SourceMap</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D%E5%88%86%E6%9E%90"><span class="toc-text">5.3 性能影响分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%BD%93%E7%A7%AF"><span class="toc-text">文件体积</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%80%A7%E8%83%BD"><span class="toc-text">运行时性能</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81SourceMap-%E8%A7%84%E8%8C%83%E6%BC%94%E8%BF%9B"><span class="toc-text">六、SourceMap 规范演进</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E5%8E%86%E5%8F%B2"><span class="toc-text">版本历史</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#V3-%E7%9A%84%E5%85%B3%E9%94%AE%E6%94%B9%E8%BF%9B"><span class="toc-text">V3 的关键改进</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ECMA-426-%E6%A0%87%E5%87%86%E5%8C%96%EF%BC%882024%EF%BC%89"><span class="toc-text">ECMA-426 标准化（2024）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E5%AD%97%E6%AE%B5"><span class="toc-text">扩展字段</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">七、总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></li></ol>
+        </div>
+    </aside>
+    <a class="btn-toc button" id="btn-toc" tabindex="0">
+        <svg viewBox="0 0 1024 1024" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M128 256h64V192H128zM320 256h576V192H320zM128 544h64v-64H128zM320 544h576v-64H320zM128 832h64v-64H128zM320 832h576v-64H320z" fill="currentColor"></path>
+        </svg>
+    </a>
+    <div class="toc-menus" id="toc-menus">
+        <div class="toc-title">Article Directory</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BC%95%E8%A8%80"><span class="toc-text">一、引言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SourceMap-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-text">二、SourceMap 基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%80%E4%B9%88%E6%98%AF-SourceMap"><span class="toc-text">2.1 什么是 SourceMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-SourceMap"><span class="toc-text">2.2 为什么需要 SourceMap</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%BD%AC%E6%8D%A2%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">代码转换的必要性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E7%9A%84%E5%9B%B0%E5%A2%83"><span class="toc-text">调试的困境</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SourceMap-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-text">2.3 SourceMap 的工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E5%A6%82%E4%BD%95%E8%AF%86%E5%88%AB-SourceMap"><span class="toc-text">浏览器如何识别 SourceMap</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%98%A0%E5%B0%84%E8%BF%87%E7%A8%8B"><span class="toc-text">映射过程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81SourceMap-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%B7%B1%E5%85%A5%E8%A7%A3%E6%9E%90"><span class="toc-text">三、SourceMap 文件格式深入解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-map-%E6%96%87%E4%BB%B6%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-text">3.1 .map 文件的基本结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%A0%B8%E5%BF%83%E5%AD%97%E6%AE%B5%E8%AF%A6%E8%A7%A3"><span class="toc-text">3.2 核心字段详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-mappings-%E5%AD%97%E6%AE%B5%E5%8E%9F%E7%90%86"><span class="toc-text">3.3 mappings 字段原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-text">基本结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E7%89%B9%E7%82%B9"><span class="toc-text">编码特点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7%E4%B8%AD%E7%9A%84-SourceMap-%E9%85%8D%E7%BD%AE"><span class="toc-text">四、构建工具中的 SourceMap 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Vite-%E7%9A%84-SourceMap-%E9%85%8D%E7%BD%AE"><span class="toc-text">4.1 Vite 的 SourceMap 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E9%80%89%E9%A1%B9"><span class="toc-text">配置选项</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-text">开发环境配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-text">生产环境配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84-SourceMap-%E7%AD%96%E7%95%A5"><span class="toc-text">五、生产环境的 SourceMap 策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E8%99%91"><span class="toc-text">5.1 安全性考虑</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SourceMap-%E6%B3%84%E9%9C%B2%E7%9A%84%E9%A3%8E%E9%99%A9"><span class="toc-text">SourceMap 泄露的风险</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%A7%81%E6%9C%89%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-text">5.2 私有化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-1%EF%BC%9AHidden-SourceMap-%E9%94%99%E8%AF%AF%E7%9B%91%E6%8E%A7"><span class="toc-text">方案 1：Hidden SourceMap + 错误监控</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-2%EF%BC%9A%E6%9D%A1%E4%BB%B6%E6%80%A7%E8%BF%94%E5%9B%9E-SourceMap"><span class="toc-text">方案 2：条件性返回 SourceMap</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D%E5%88%86%E6%9E%90"><span class="toc-text">5.3 性能影响分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E4%BD%93%E7%A7%AF"><span class="toc-text">文件体积</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%80%A7%E8%83%BD"><span class="toc-text">运行时性能</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81SourceMap-%E8%A7%84%E8%8C%83%E6%BC%94%E8%BF%9B"><span class="toc-text">六、SourceMap 规范演进</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%88%E6%9C%AC%E5%8E%86%E5%8F%B2"><span class="toc-text">版本历史</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#V3-%E7%9A%84%E5%85%B3%E9%94%AE%E6%94%B9%E8%BF%9B"><span class="toc-text">V3 的关键改进</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ECMA-426-%E6%A0%87%E5%87%86%E5%8C%96%EF%BC%882024%EF%BC%89"><span class="toc-text">ECMA-426 标准化（2024）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E5%AD%97%E6%AE%B5"><span class="toc-text">扩展字段</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">七、总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></li></ol>
+    </div>
+
+
+<article class="post post__with-toc content-card">
+    <div class="post__header"></div>
+    <div class="post__content">
+        <h2 id="一、引言"><a href="#一、引言" class="headerlink" title="一、引言"></a>一、引言</h2><p>想象这样一个场景：某天凌晨，你接到紧急通知，生产环境的页面出现了严重的 JavaScript 错误，用户无法正常使用。你打开浏览器的开发者工具，看到的错误是这样的：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="code"><pre><code class="hljs livecodeserver">Uncaught TypeError: Cannot <span class="hljs-built_in">read</span> property <span class="hljs-string">&#x27;map&#x27;</span> <span class="hljs-keyword">of</span> undefined<br>    <span class="hljs-keyword">at</span> r.<span class="hljs-keyword">a</span> (bundle.<span class="hljs-built_in">min</span>.js:<span class="hljs-number">1</span>:<span class="hljs-number">45231</span>)<br>    <span class="hljs-keyword">at</span> u (bundle.<span class="hljs-built_in">min</span>.js:<span class="hljs-number">1</span>:<span class="hljs-number">38492</span>)<br>    <span class="hljs-keyword">at</span> bundle.<span class="hljs-built_in">min</span>.js:<span class="hljs-number">1</span>:<span class="hljs-number">40157</span><br></code></pre></td></tr></table></figure>
+
+<p>代码已经被压缩成了一行，变量名都变成了单个字母，你完全不知道错误发生在哪个文件、哪个函数中。这时候，<strong>SourceMap</strong> 就能拯救你。</p>
+<p>在现代前端开发中，生产环境的代码往往经历了多重转换：</p>
+<ul>
+<li>TypeScript&#x2F;JSX 编译成 JavaScript</li>
+<li>ES6+ 语法转换为 ES5</li>
+<li>代码压缩和混淆</li>
+<li>多个模块打包成一个文件</li>
+</ul>
+<p>这些转换虽然提升了性能和兼容性，但也让调试变得异常困难。SourceMap 正是为了解决这个问题而生的——它建立了转换后代码与源代码之间的映射关系，让我们能够在压缩后的代码中定位到原始源代码的准确位置。</p>
+<h2 id="二、SourceMap-基础概念"><a href="#二、SourceMap-基础概念" class="headerlink" title="二、SourceMap 基础概念"></a>二、SourceMap 基础概念</h2><h3 id="2-1-什么是-SourceMap"><a href="#2-1-什么是-SourceMap" class="headerlink" title="2.1 什么是 SourceMap"></a>2.1 什么是 SourceMap</h3><p>SourceMap（源代码映射）是一个存储了源代码与转换后代码之间位置映射关系的 JSON 格式文件。它的文件扩展名通常是 <code>.map</code>，例如 <code>bundle.js.map</code>。</p>
+<blockquote>
+<p>SourceMap 已经成为了正式的 ECMAScript 标准，详细规范可以参考 <a target="_blank" rel="noopener" href="https://tc39.es/ecma426/2024/">ECMA-426</a>。</p>
+</blockquote>
+<p>当浏览器加载了带有 SourceMap 的 JavaScript 文件时，开发者工具能够：</p>
+<ul>
+<li>将压缩后的代码位置映射回原始源代码</li>
+<li>显示原始的变量名和函数名</li>
+<li>在原始源代码中设置断点</li>
+<li>展示清晰的错误堆栈信息</li>
+</ul>
+<h3 id="2-2-为什么需要-SourceMap"><a href="#2-2-为什么需要-SourceMap" class="headerlink" title="2.2 为什么需要 SourceMap"></a>2.2 为什么需要 SourceMap</h3><h4 id="代码转换的必要性"><a href="#代码转换的必要性" class="headerlink" title="代码转换的必要性"></a>代码转换的必要性</h4><p>现代前端开发中，代码转换是不可避免的：</p>
+<ol>
+<li><strong>性能优化</strong>：压缩和混淆能减小文件体积，提升加载速度</li>
+<li><strong>兼容性</strong>：需要将新语法转换为旧版本浏览器支持的代码</li>
+<li><strong>开发效率</strong>：使用 TypeScript、JSX 等提高开发体验</li>
+<li><strong>模块化</strong>：将多个模块打包成少量文件，减少 HTTP 请求</li>
+</ol>
+<h4 id="调试的困境"><a href="#调试的困境" class="headerlink" title="调试的困境"></a>调试的困境</h4><p>然而，这些转换带来了调试难题：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// 原始代码</span><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">items</span>) &#123;<br>    <span class="hljs-keyword">const</span> count = items.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">item</span>) =&gt;</span> item.<span class="hljs-property">points</span>).<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a + b, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">return</span> count * items.<span class="hljs-property">multiplier</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// 压缩后</span><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">r</span>(<span class="hljs-params">n</span>) &#123;<br>    <span class="hljs-keyword">const</span> t = n.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">n</span>) =&gt;</span> n.<span class="hljs-property">p</span>).<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">n, t</span>) =&gt;</span> n + t, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">return</span> t * n.<span class="hljs-property">m</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果压缩后的代码出错，你根本无法快速定位问题所在。</p>
+<h3 id="2-3-SourceMap-的工作原理"><a href="#2-3-SourceMap-的工作原理" class="headerlink" title="2.3 SourceMap 的工作原理"></a>2.3 SourceMap 的工作原理</h3><h4 id="浏览器如何识别-SourceMap"><a href="#浏览器如何识别-SourceMap" class="headerlink" title="浏览器如何识别 SourceMap"></a>浏览器如何识别 SourceMap</h4><p>转换后的 JavaScript 文件末尾通常会包含一条特殊注释：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">//# sourceMappingURL=bundle.js.map</span><br></code></pre></td></tr></table></figure>
+
+<p>或者使用 Data URL 内联：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLC...</span><br></code></pre></td></tr></table></figure>
+
+<p>浏览器的开发者工具检测到这个注释后，会自动下载对应的 <code>.map</code> 文件，并在调试时使用映射信息。</p>
+<h4 id="映射过程"><a href="#映射过程" class="headerlink" title="映射过程"></a>映射过程</h4><p>当你在 DevTools 中查看错误堆栈或设置断点时：</p>
+<ol>
+<li>DevTools 读取压缩代码中的位置信息（行号、列号）</li>
+<li>在 SourceMap 文件中查找对应的映射关系</li>
+<li>定位到原始源代码的准确位置</li>
+<li>显示原始的文件名、函数名和代码内容</li>
+</ol>
+<h2 id="三、SourceMap-文件格式深入解析"><a href="#三、SourceMap-文件格式深入解析" class="headerlink" title="三、SourceMap 文件格式深入解析"></a>三、SourceMap 文件格式深入解析</h2><h3 id="3-1-map-文件的基本结构"><a href="#3-1-map-文件的基本结构" class="headerlink" title="3.1 .map 文件的基本结构"></a>3.1 .map 文件的基本结构</h3><p>一个典型的 SourceMap 文件是 JSON 格式，结构如下：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;file&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;bundle.min.js&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;sourceRoot&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;sources&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;src/index.js&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;src/utils.js&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;sourcesContent&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><br>        <span class="hljs-string">&quot;import &#123; helper &#125; from &#x27;./utils&#x27;;\nconsole.log(helper());&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-string">&quot;export function helper() &#123;\n  return &#x27;Hello&#x27;;\n&#125;&quot;</span><br>    <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;names&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;console&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;log&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;helper&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;result&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;mappings&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AAAA,OAAOA,QAAQ,SAASC,CAAAA,GAAAA&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-2-核心字段详解"><a href="#3-2-核心字段详解" class="headerlink" title="3.2 核心字段详解"></a>3.2 核心字段详解</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>version</code></td>
+<td>Number</td>
+<td>SourceMap 规范版本号，根据 <a target="_blank" rel="noopener" href="https://tc39.es/ecma426/2024/">ECMA-426</a> 标准，该值已硬编码为固定值 <code>3</code></td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>String</td>
+<td>转换后的文件名</td>
+</tr>
+<tr>
+<td><code>sourceRoot</code></td>
+<td>String</td>
+<td>源文件根路径，可选</td>
+</tr>
+<tr>
+<td><code>sources</code></td>
+<td>Array</td>
+<td>原始源文件列表</td>
+</tr>
+<tr>
+<td><code>sourcesContent</code></td>
+<td>Array</td>
+<td>源文件内容（可选，用于内联）</td>
+</tr>
+<tr>
+<td><code>names</code></td>
+<td>Array</td>
+<td>转换前的变量名和属性名列表</td>
+</tr>
+<tr>
+<td><code>mappings</code></td>
+<td>String</td>
+<td><strong>核心</strong>：Base64 VLQ 编码的映射数据</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-mappings-字段原理"><a href="#3-3-mappings-字段原理" class="headerlink" title="3.3 mappings 字段原理"></a>3.3 mappings 字段原理</h3><p><code>mappings</code> 字段是 SourceMap 的核心，使用 Base64 VLQ 编码来高效存储位置映射关系。</p>
+<h4 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h4><ul>
+<li><strong>分号</strong> <code>;</code> 分隔生成代码的每一行</li>
+<li><strong>逗号</strong> <code>,</code> 分隔同一行内的多个映射点</li>
+<li>每个映射点包含 1-5 个相对偏移值：生成列、源文件索引、源行、源列、变量名索引</li>
+</ul>
+<h4 id="编码特点"><a href="#编码特点" class="headerlink" title="编码特点"></a>编码特点</h4><p>VLQ (Variable Length Quantity) 编码使用 Base64 字符，每个字符存储 5 位数据，支持变长整数和相对偏移，大幅减少存储空间。</p>
+<blockquote>
+<p>完整编码规范请参考<a target="_blank" rel="noopener" href="https://tc39.es/ecma426/2024/">ECMA-426</a>或<a target="_blank" rel="noopener" href="https://sourcemaps.info/spec.html">sourcemaps.info</a>。</p>
+</blockquote>
+<h2 id="四、构建工具中的-SourceMap-配置"><a href="#四、构建工具中的-SourceMap-配置" class="headerlink" title="四、构建工具中的 SourceMap 配置"></a>四、构建工具中的 SourceMap 配置</h2><h3 id="4-1-Vite-的-SourceMap-配置"><a href="#4-1-Vite-的-SourceMap-配置" class="headerlink" title="4.1 Vite 的 SourceMap 配置"></a>4.1 Vite 的 SourceMap 配置</h3><p>本文以 Vite 为主，其他主流构建工具的 SourceMap 配置方式类似。具体配置可参考各工具官方文档。</p>
+<h4 id="配置选项"><a href="#配置选项" class="headerlink" title="配置选项"></a>配置选项</h4><p>Vite 的 <code>build.sourcemap</code> 选项支持以下值：</p>
+<table>
+<thead>
+<tr>
+<th>配置值</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>false</code></td>
+<td>不生成 SourceMap</td>
+<td>生产环境，不需要调试</td>
+</tr>
+<tr>
+<td><code>true</code></td>
+<td>生成独立的 .map 文件，并添加引用注释</td>
+<td>开发环境，或需要公开调试的生产环境</td>
+</tr>
+<tr>
+<td><code>&#39;inline&#39;</code></td>
+<td>SourceMap 作为 Data URL 内联到文件中</td>
+<td>特殊调试场景，不推荐生产使用</td>
+</tr>
+<tr>
+<td><code>&#39;hidden&#39;</code></td>
+<td>生成 .map 文件，但不添加引用注释</td>
+<td>生产环境，配合错误监控平台使用</td>
+</tr>
+</tbody></table>
+<h4 id="开发环境配置"><a href="#开发环境配置" class="headerlink" title="开发环境配置"></a>开发环境配置</h4><p>开发环境下，Vite 默认启用 SourceMap，无需额外配置。</p>
+<p><strong>SourceMap 的存储路径</strong></p>
+<p>Vite 在开发环境中会在不同位置生成 SourceMap：</p>
+<p><strong>1. 依赖预构建的 SourceMap</strong></p>
+<p>Vite 会对 node_modules 中的依赖进行预构建优化（使用 esbuild），这些文件的 SourceMap 会实际写入磁盘：</p>
+<figure class="highlight livescript"><table><tr><td class="code"><pre><code class="hljs livescript">node_modules<span class="hljs-regexp">/.vite/deps/</span><br>  ├── react.js<br>  ├── react.js.<span class="hljs-keyword">map</span>           <span class="hljs-comment"># 预构建依赖的 SourceMap</span><br>  └── _metadata.json<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-1.png" class="lazy" data-srcset="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-1.png" srcset="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAABlBMVEXMzMyWlpYU2uzLAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNgAAAAAgAB9HFkpgAAAABJRU5ErkJggg==" alt="依赖预构建的 SourceMap 路径"></p>
+<p><strong>2. 项目源码的 SourceMap</strong></p>
+<p>对于你的项目源码（<code>src/</code> 目录下的文件），Vite 采用不同的策略：</p>
+<ul>
+<li><strong>直接提供源文件</strong>：通过 <code>/@fs/</code> 虚拟路径直接访问磁盘上的源文件</li>
+<li><strong>即时转换</strong>：TypeScript、Vue、JSX 等在内存中即时转换</li>
+<li><strong>内联 SourceMap</strong>：转换后的代码通常使用内联的 Data URL 格式的 SourceMap</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-2.png" class="lazy" data-srcset="https://cdn.jsdelivr.net/gh/74hz/blog-assets@main/posts/SourceMap%E8%AF%A6%E8%A7%A3/demo-2.png" srcset="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAABlBMVEXMzMyWlpYU2uzLAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNgAAAAAgAB9HFkpgAAAABJRU5ErkJggg==" alt="依赖预构建的 SourceMap 路径"></p>
+<p>例如：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// 转换后的代码末尾</span><br><span class="hljs-comment">//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLC...</span><br></code></pre></td></tr></table></figure>
+
+<p>或者直接映射到原始文件：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">//# sourceMappingURL=/@fs/Users/yourname/project/src/components/App.vue</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="生产环境配置"><a href="#生产环境配置" class="headerlink" title="生产环境配置"></a>生产环境配置</h4><p>根据不同需求场景选择合适的配置：</p>
+<p><strong>场景 1：完全不需要调试</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// vite.config.js</span><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineConfig</span>(&#123;<br>    <span class="hljs-attr">build</span>: &#123;<br>        <span class="hljs-attr">sourcemap</span>: <span class="hljs-literal">false</span>, <span class="hljs-comment">// 不生成 SourceMap</span><br>    &#125;,<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p><strong>场景 2：需要调试但不想暴露源码（推荐）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// vite.config.js</span><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineConfig</span>(&#123;<br>    <span class="hljs-attr">build</span>: &#123;<br>        <span class="hljs-attr">sourcemap</span>: <span class="hljs-string">&quot;hidden&quot;</span>, <span class="hljs-comment">// 生成 .map 但不添加引用</span><br>    &#125;,<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>生成完整的 .map 文件，但不在打包文件中添加 <code>//# sourceMappingURL</code> 注释，可以手动上传到错误监控平台。</p>
+<p><strong>场景 3：使用错误监控平台（如 Sentry）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// vite.config.js</span><br><span class="hljs-keyword">import</span> &#123; defineConfig &#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;vite&quot;</span>;<br><span class="hljs-keyword">import</span> &#123; sentryVitePlugin &#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;@sentry/vite-plugin&quot;</span>;<br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineConfig</span>(&#123;<br>    <span class="hljs-attr">build</span>: &#123;<br>        <span class="hljs-attr">sourcemap</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// 生成 SourceMap</span><br>    &#125;,<br><br>    <span class="hljs-attr">plugins</span>: [<br>        <span class="hljs-comment">// Sentry 插件会自动上传 SourceMap</span><br>        <span class="hljs-title function_">sentryVitePlugin</span>(&#123;<br>            <span class="hljs-attr">org</span>: <span class="hljs-string">&quot;your-org&quot;</span>,<br>            <span class="hljs-attr">project</span>: <span class="hljs-string">&quot;your-project&quot;</span>,<br>            <span class="hljs-attr">authToken</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">SENTRY_AUTH_TOKEN</span>,<br><br>            <span class="hljs-comment">// 上传后删除本地 SourceMap</span><br>            <span class="hljs-attr">sourcemaps</span>: &#123;<br>                <span class="hljs-attr">assets</span>: <span class="hljs-string">&quot;./dist/**&quot;</span>,<br>                <span class="hljs-attr">filesToDeleteAfterUpload</span>: <span class="hljs-string">&quot;./dist/**/*.map&quot;</span>,<br>            &#125;,<br>        &#125;),<br>    ],<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p><strong>场景 4：内联 SourceMap（不推荐生产环境）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// vite.config.js</span><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineConfig</span>(&#123;<br>    <span class="hljs-attr">build</span>: &#123;<br>        <span class="hljs-attr">sourcemap</span>: <span class="hljs-string">&quot;inline&quot;</span>, <span class="hljs-comment">// SourceMap 内联到文件中</span><br>    &#125;,<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p>会显著增加打包文件体积，一般仅用于特殊调试场景。</p>
+<h2 id="五、生产环境的-SourceMap-策略"><a href="#五、生产环境的-SourceMap-策略" class="headerlink" title="五、生产环境的 SourceMap 策略"></a>五、生产环境的 SourceMap 策略</h2><h3 id="5-1-安全性考虑"><a href="#5-1-安全性考虑" class="headerlink" title="5.1 安全性考虑"></a>5.1 安全性考虑</h3><h4 id="SourceMap-泄露的风险"><a href="#SourceMap-泄露的风险" class="headerlink" title="SourceMap 泄露的风险"></a>SourceMap 泄露的风险</h4><p>如果在生产环境中直接暴露 SourceMap 文件，可能导致：</p>
+<ol>
+<li><strong>源代码泄露</strong>：攻击者可以完整还原你的源代码</li>
+<li><strong>业务逻辑暴露</strong>：核心算法、API 接口等被获取</li>
+<li><strong>敏感信息泄露</strong>：注释中的 TODO、密钥、内部地址等</li>
+<li><strong>知识产权风险</strong>：商业代码被竞争对手获取</li>
+</ol>
+<h3 id="5-2-私有化方案"><a href="#5-2-私有化方案" class="headerlink" title="5.2 私有化方案"></a>5.2 私有化方案</h3><h4 id="方案-1：Hidden-SourceMap-错误监控"><a href="#方案-1：Hidden-SourceMap-错误监控" class="headerlink" title="方案 1：Hidden SourceMap + 错误监控"></a>方案 1：Hidden SourceMap + 错误监控</h4><p><strong>工作流程</strong>：</p>
+<ol>
+<li>构建时生成 SourceMap，但不在 bundle 中引用</li>
+<li>将 SourceMap 上传到 Sentry 等平台</li>
+<li>生产环境部署时<strong>删除</strong> .map 文件</li>
+<li>用户端错误上报到 Sentry，平台自动还原堆栈</li>
+</ol>
+<h4 id="方案-2：条件性返回-SourceMap"><a href="#方案-2：条件性返回-SourceMap" class="headerlink" title="方案 2：条件性返回 SourceMap"></a>方案 2：条件性返回 SourceMap</h4><p>通过服务器配置，只对特定条件返回 SourceMap：</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><code class="hljs nginx"><span class="hljs-comment"># Nginx 配置</span><br><span class="hljs-section">location</span> <span class="hljs-regexp">~* \.map$</span> &#123;<br>    <span class="hljs-comment"># 只允许内网 IP 访问</span><br>    <span class="hljs-attribute">allow</span> <span class="hljs-number">10.0.0.0</span>/<span class="hljs-number">8</span>;<br>    <span class="hljs-attribute">allow</span> <span class="hljs-number">192.168.0.0</span>/<span class="hljs-number">12</span>;<br>    <span class="hljs-attribute">deny</span> all;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">// Node.js 中间件示例</span><br>app.<span class="hljs-title function_">use</span>(<span class="hljs-string">&quot;/static/*.map&quot;</span>, <span class="hljs-function">(<span class="hljs-params">req, res, next</span>) =&gt;</span> &#123;<br>    <span class="hljs-keyword">const</span> allowedIPs = [<span class="hljs-string">&quot;192.168.1.1&quot;</span>, <span class="hljs-string">&quot;10.0.0.1&quot;</span>];<br><br>    <span class="hljs-keyword">if</span> (allowedIPs.<span class="hljs-title function_">includes</span>(req.<span class="hljs-property">ip</span>)) &#123;<br>        <span class="hljs-title function_">next</span>();<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        res.<span class="hljs-title function_">status</span>(<span class="hljs-number">403</span>).<span class="hljs-title function_">send</span>(<span class="hljs-string">&quot;Forbidden&quot;</span>);<br>    &#125;<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-3-性能影响分析"><a href="#5-3-性能影响分析" class="headerlink" title="5.3 性能影响分析"></a>5.3 性能影响分析</h3><h4 id="文件体积"><a href="#文件体积" class="headerlink" title="文件体积"></a>文件体积</h4><p>SourceMap 文件通常比原始 bundle 还大：</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><code class="hljs stylus">bundle<span class="hljs-selector-class">.js</span>          <span class="hljs-number">250</span> KB (压缩后)<br>bundle<span class="hljs-selector-class">.js</span><span class="hljs-selector-class">.map</span>      <span class="hljs-number">800</span> KB (未压缩)<br></code></pre></td></tr></table></figure>
+
+<p>如果使用 <code>inline</code>，会将 map 内容嵌入到 bundle 中，导致文件体积暴增。</p>
+<h4 id="运行时性能"><a href="#运行时性能" class="headerlink" title="运行时性能"></a>运行时性能</h4><p><strong>重要</strong>：SourceMap <strong>不会影响运行时性能</strong>！</p>
+<ul>
+<li>.map 文件只在打开 DevTools 时才会加载</li>
+<li>普通用户访问页面不会下载 SourceMap</li>
+<li>即使下载，也不会执行任何代码</li>
+</ul>
+<h2 id="六、SourceMap-规范演进"><a href="#六、SourceMap-规范演进" class="headerlink" title="六、SourceMap 规范演进"></a>六、SourceMap 规范演进</h2><h4 id="版本历史"><a href="#版本历史" class="headerlink" title="版本历史"></a>版本历史</h4><ul>
+<li><strong>V1</strong>（2009）：Google Closure Compiler 首次引入，格式冗余</li>
+<li><strong>V2</strong>：改进，但仍不够高效</li>
+<li><strong>V3</strong>（2011-2024）：2024 年被 ECMA 标准化为 <a target="_blank" rel="noopener" href="https://tc39.es/ecma426/2024/">ECMA-426</a></li>
+</ul>
+<h4 id="V3-的关键改进"><a href="#V3-的关键改进" class="headerlink" title="V3 的关键改进"></a>V3 的关键改进</h4><ol>
+<li><strong>Base64 VLQ 编码</strong>：相比 V2 减小约 50% 体积</li>
+<li><strong>相对位置</strong>：使用偏移量而非绝对值</li>
+<li><strong>sourcesContent</strong>：可选的内联源码</li>
+<li><strong>sourceRoot</strong>：统一的源文件根路径</li>
+</ol>
+<h4 id="ECMA-426-标准化（2024）"><a href="#ECMA-426-标准化（2024）" class="headerlink" title="ECMA-426 标准化（2024）"></a>ECMA-426 标准化（2024）</h4><p>2024 年，SourceMap V3 规范正式被 ECMA International 标准化为 <strong>ECMA-426</strong>，这标志着：</p>
+<ul>
+<li><strong>版本号固定</strong>：<code>version</code> 字段被硬编码为固定值 <code>3</code>，不再有版本演进</li>
+<li><strong>规范稳定</strong>：成为正式的 ECMA 标准，确保长期稳定性</li>
+<li><strong>广泛支持</strong>：所有主流浏览器和构建工具都遵循此标准</li>
+<li><strong>向后兼容</strong>：与之前的 V3 草案完全兼容</li>
+</ul>
+<p>这意味着未来不会有 V4 或更高版本，任何新特性都将通过扩展字段的方式添加，而不会改变核心格式。</p>
+<blockquote>
+<p>ECMA-426 中的原文：The source map format does not have version numbers anymore, and it is instead hard-coded to always be “3”.</p>
+</blockquote>
+<h4 id="扩展字段"><a href="#扩展字段" class="headerlink" title="扩展字段"></a>扩展字段</h4><p>虽然版本号固定，但规范允许通过添加自定义字段来扩展功能：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;version&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;file&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;bundle.js&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;sources&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;input.js&quot;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;mappings&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AAAA&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-comment">// 自定义扩展字段</span><br>    <span class="hljs-attr">&quot;x_google_linecount&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">100</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;x_custom_metadata&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;buildTool&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;vite&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;timestamp&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2024-10-11&quot;</span><br>    <span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>推荐使用 <code>x_</code> 前缀来标识自定义字段，避免与未来可能的标准字段冲突。</p>
+<h3 id="七、总结"><a href="#七、总结" class="headerlink" title="七、总结"></a>七、总结</h3><p>SourceMap 通过将转换&#x2F;压缩后的代码精准映射回源代码，显著提升了调试与故障定位效率；其核心是使用 Base64 VLQ 编码的 mappings 字段，且仅在打开 DevTools 时才会加载，不影响运行时性能。</p>
+<p>在 Vite 场景下：</p>
+<ul>
+<li>开发态默认提供可调试映射：依赖预构建的 map 落盘，项目源码多以内联&#x2F;虚拟路径形式提供，能够直接定位到 TS&#x2F;JSX&#x2F;Vue 源文件。</li>
+<li>生产态按需选择 build.sourcemap：false&#x2F;true&#x2F;inline&#x2F;hidden。</li>
+</ul>
+<p>安全与合规：</p>
+<ul>
+<li>公开 SourceMap 可能导致源码与敏感信息泄露，应避免在生产对外暴露，谨慎包含 sourcesContent。</li>
+<li>使用私有化上传、IP 白名单或网关鉴权，配合发布版本号与静态资源前缀确保符号化准确。</li>
+</ul>
+<p>规范与演进：</p>
+<ul>
+<li>2024 年标准化为 ECMA-426，version 固定为 3，生态稳定可靠；新能力通过扩展字段演进，向后兼容良好。</li>
+</ul>
+<p>SourceMap 虽然看似只是一个技术细节，但它连接了开发体验与生产调试两个关键场景。掌握 SourceMap 的原理和最佳实践，能让你在代码出错时快速定位问题，在构建优化时做出明智选择，最终提升整个团队的开发效率。</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://tc39.es/ecma426/2024/">ECMA-426: ECMAScript Source Map Standard (2024)</a> - SourceMap 官方 ECMA 标准</li>
+<li><a target="_blank" rel="noopener" href="https://sourcemaps.info/spec.html">Source Map Specification</a> - SourceMap 规范详细文档</li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Glossary/Source_map">MDN: Source Map (Glossary)</a> - MDN 关于 SourceMap 的权威解释</li>
+<li><a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit">Source Map Revision 3 Proposal</a> - V3 版本原始提案文档</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/mozilla/source-map">mozilla&#x2F;source-map</a> - Mozilla 官方 SourceMap 解析库</li>
+<li><a target="_blank" rel="noopener" href="https://docs.sentry.io/platforms/javascript/sourcemaps/">Sentry SourceMap 文档</a> - Sentry 错误监控集成</li>
+</ul>
+
+    </div>
+    
+    <div class="post__license">
+        <p>
+            <strong>Author: </strong>Yanko
+        </p>
+        <p>
+            <strong>
+                Permalink: 
+            </strong>
+            <a href="https://74hz.github.io/article/0967afaca117/">https://74hz.github.io/article/0967afaca117/</a>
+        </p>
+        
+            <strong>
+                <p>如需转载或参考本文内容，请注明出处。</p>
+
+            </strong>
+        
+    </div>
+ 
+    <div class="post-footer__meta"><p>updated at 2025-11-05</p></div> 
+    <div class="post-entry__tags"><a href="/tags/SourceMap/" class="post-tags__link button"># SourceMap</a><a href="/tags/%E5%89%8D%E7%AB%AF%E5%B7%A5%E7%A8%8B%E5%8C%96/" class="post-tags__link button"># 前端工程化</a><a href="/tags/%E8%B0%83%E8%AF%95/" class="post-tags__link button"># 调试</a></div> 
+</article>
+
+
+    <div class="nav">
+        <div class="nav__prev">
+            
+        </div>
+        <div class="nav__next">
+            
+                <a href="/article/274a96aab328/" class="nav__link">
+                    <div>
+                        <div class="nav__label">
+                            Next Post
+                        </div>
+                        <div class="nav__title">
+                            Tauri MacOS应用构建指南：从打包、代码签名到公证实践
+                        </div>
+                    </div>
+                    <div>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M434.944 790.624l-45.248-45.248L623.04 512l-233.376-233.376 45.248-45.248L713.568 512z" fill="#808080"></path></svg>
+                    </div>
+                </a>
+            
+        </div>
+    </div>
+
+
+
+    <div class="post__comments post__with-toc content-card" id="comment">
+        
+    <h4>Comments</h4>
+    
+    
+    
+    
+    
+    <div class="comments-container">
+        <div id="giscus_container"></div>
+
+        <script>
+            const THEME_AUTO_KEY = 'auto';
+            const THEME_SCHEME_CACHE_KEY = 'user-color-scheme';
+            const containerEl = document.getElementById('giscus_container');
+
+            // 如果是theme：auto，则监听user-color-scheme变更用以动态调整评论组件主题
+            if (THEME_AUTO_KEY === 'auto') {
+                const originalSetItem = localStorage.setItem;
+
+                localStorage.setItem = function(key, value) {
+                    originalSetItem.apply(this, [key, value]);
+
+                    if (THEME_SCHEME_CACHE_KEY === key) {
+                        loadCommentComponent();
+                    }
+                };
+            }
+
+            loadCommentComponent();
+
+            /**
+             * @description 载入评论组件
+             */
+            function loadCommentComponent() {
+                // 清空评论组件容器
+                while (containerEl.firstChild) {
+                    containerEl.removeChild(containerEl.firstChild);
+                }
+
+                const scriptEl = createGiscusScript();
+
+                if (THEME_AUTO_KEY === scriptEl.getAttribute('data-theme')) {
+                    const isDark = window.matchMedia("(prefers-color-scheme: dark)")?.matches;
+                    const theme = localStorage.getItem(THEME_SCHEME_CACHE_KEY) || (isDark ? 'dark' : 'light');
+                    scriptEl.setAttribute('data-theme', theme);
+                }
+
+                containerEl.append(scriptEl);
+            }
+
+            /**
+             * @description 创建Giscus评论组件Script
+             * @returns {HTMLScriptElement}
+             */
+            function createGiscusScript() {
+                const scriptEl = document.createElement('script');
+
+                scriptEl.setAttribute('src', 'https://giscus.app/client.js');
+                scriptEl.setAttribute('data-repo', '74hz/74hz.github.io');
+                scriptEl.setAttribute('data-repo-id', 'R_kgDOMuHdAw');
+                scriptEl.setAttribute('data-category', 'Announcements');
+                scriptEl.setAttribute('data-category-id', 'DIC_kwDOMuHdA84CiVzy');
+                scriptEl.setAttribute('data-mapping', 'pathname');
+                scriptEl.setAttribute('data-strict', '1');
+                scriptEl.setAttribute('data-reactions-enabled', '1');
+                scriptEl.setAttribute('data-emit-metadata', '0');
+                scriptEl.setAttribute('data-input-position', 'top');
+                scriptEl.setAttribute('data-theme', 'auto' );
+                scriptEl.setAttribute('data-lang', 'zh-CN');
+                scriptEl.setAttribute('data-loading', 'lazy');
+                scriptEl.setAttribute('crossorigin', 'anonymous');
+                scriptEl.setAttribute('async', '');
+
+                return scriptEl;
+            }
+        </script>
+    </div>
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+    </div>
+
+
+
+</main>
+
+            <footer class="footer">
+     
+    <a href="#" class="button" id="b2t" aria-label="Back to Top" title="Back to Top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="32" height="32">
+            <path d="M233.376 722.752L278.624 768 512 534.624 745.376 768l45.248-45.248L512 444.128zM192 352h640V288H192z" fill="currentColor"></path>
+        </svg>
+    </a>
+
+    
+
+
+    
+    
+    
+    
+ 
+ 
+
+ 
+    
+    
+<!--    <p>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme - <a href="https://github.com/ChrAlpha/hexo-theme-cards" target="_blank">Cards</a></p>-->
+</footer>
+
+        </div>
+        
+    <script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js"></script>
+    <script>
+        window.lazyLoadOptions = {
+            elements_selector: ".lazy",
+            threshold: 0
+        };
+    </script>
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+        data-cf-beacon='{"token": "f51baaf9791c4b7fbb0b3d27699d779c"}'></script>
+    </script>
+    
+
+ 
+
+
+
+ 
+
+
+    
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    
+
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+
+
+    </body>
+</html>

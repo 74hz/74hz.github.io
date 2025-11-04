@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+
+    
+
+    <!-- 渲染优化 -->
+    <meta name="renderer" content="webkit">
+    <meta name="force-rendering" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="HandheldFriendly" content="True" >
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!--icon-->
+
+    
+        <link rel="shortcut icon" href="/favicon/favicon.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon_16.ico">
+    
+    
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon_32.ico">
+    
+    
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple_touch_icon.png">
+    
+    
+        <link rel="mask-icon" href="/favicon/favicon_32.ico">
+    
+
+
+    <!-- meta -->
+
+
+<title>博客序言 | Yanko</title>
+
+
+
+
+
+    <!-- OpenGraph -->
+ 
+    <meta name="description" content="这是我博客的第一篇文章，我想借此机会简单说明这个平台存在的意义，以及未来希望与你共同探索的方向。 初衷这里会存放我学习技术、阅读书籍或实践项目时的思考与总结。无论是代码片段、工具使用心得，还是对某个领域的阶段性理解，都希望通过文字沉淀下来，既是自我复盘，也希望能为偶然路过的你提供一丝灵感。 内容目前的计划包括但不限于  技术实践：如个人开发难点记录、学习新鲜技术的开发心得。 读书笔记：技术书籍或文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="博客序言">
+<meta property="og:url" content="https://74hz.github.io/article/c9a6c86b3515/index.html">
+<meta property="og:site_name" content="Yanko">
+<meta property="og:description" content="这是我博客的第一篇文章，我想借此机会简单说明这个平台存在的意义，以及未来希望与你共同探索的方向。 初衷这里会存放我学习技术、阅读书籍或实践项目时的思考与总结。无论是代码片段、工具使用心得，还是对某个领域的阶段性理解，都希望通过文字沉淀下来，既是自我复盘，也希望能为偶然路过的你提供一丝灵感。 内容目前的计划包括但不限于  技术实践：如个人开发难点记录、学习新鲜技术的开发心得。 读书笔记：技术书籍或文">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-07-23T03:22:32.000Z">
+<meta property="article:modified_time" content="2025-10-11T15:25:29.292Z">
+<meta property="article:author" content="木 直">
+<meta name="twitter:card" content="summary_large_image">
+
+
+    
+<link rel="stylesheet" href="/css/style/main.css">
+ 
+
+    
+    
+    
+        <link rel="stylesheet" id="hl-default-theme" href="/css/highlight/hljs.css" media="none" >
+        
+            <link rel="stylesheet" id="hl-dark-theme" href="/css/highlight/hljs.dark.css" media="none">
+        
+    
+
+    
+
+    
+    
+<link rel="stylesheet" href="/css/style/dark.css">
+
+    
+<script src="/js/darkmode.js"></script>
+
+
+
+     
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ 
+
+    <!-- custom head -->
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+    <body>
+        <div id="app" tabindex="-1">
+            <header class="header">
+    <div class="header__left">
+        <a href="/" class="button">
+            <span class="logo__text">Yanko&#39;s Blog</span>
+        </a>
+    </div>
+    <div class="header__right">
+        
+            <div class="navbar__menus">
+                
+                    <a href="/" class="navbar-menu button">首页</a>
+                
+                    <a href="/categories/" class="navbar-menu button">分类</a>
+                
+                    <a href="/tags/" class="navbar-menu button">标签</a>
+                
+                    <a href="/archives/" class="navbar-menu button">归档</a>
+                
+                    <a href="/friends/" class="navbar-menu button">友链</a>
+                
+            </div>
+        
+        
+        
+    <a href="/search/" id="btn-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="32"><path d="M192 448c0-141.152 114.848-256 256-256s256 114.848 256 256-114.848 256-256 256-256-114.848-256-256z m710.624 409.376l-206.88-206.88A318.784 318.784 0 0 0 768 448c0-176.736-143.264-320-320-320S128 271.264 128 448s143.264 320 320 320a318.784 318.784 0 0 0 202.496-72.256l206.88 206.88 45.248-45.248z"></path></svg>
+    </a>
+
+
+        
+        
+    <a href="javaScript:void(0);" id="btn-toggle-dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </a>
+
+
+        
+            <a class="dropdown-icon button" id="btn-dropdown" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width='24' height='24' fill="none" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" d="M3.314,4.8h13.372c0.41,0,0.743-0.333,0.743-0.743c0-0.41-0.333-0.743-0.743-0.743H3.314c-0.41,0-0.743,0.333-0.743,0.743C2.571,4.467,2.904,4.8,3.314,4.8z M16.686,15.2H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,15.2,16.686,15.2z M16.686,9.257H3.314c-0.41,0-0.743,0.333-0.743,0.743s0.333,0.743,0.743,0.743h13.372c0.41,0,0.743-0.333,0.743-0.743S17.096,9.257,16.686,9.257z"></path></svg></a>
+            <div class="dropdown-menus" id="dropdown-menus">
+                
+                    <a href="/" class="dropdown-menu button">首页</a>
+                
+                    <a href="/categories/" class="dropdown-menu button">分类</a>
+                
+                    <a href="/tags/" class="dropdown-menu button">标签</a>
+                
+                    <a href="/archives/" class="dropdown-menu button">归档</a>
+                
+                    <a href="/friends/" class="dropdown-menu button">友链</a>
+                
+            </div>
+        
+    </div>
+</header>
+
+
+            <main class="main">
+    
+
+<div class="post-title">
+    <h1 class="post-title__text">
+        博客序言
+    </h1>
+    <div class="post-title__meta">
+        <a href="/archives/2025/07/" class="post-meta__date button">2025-07-23</a>
+        
+    <span class="separate-dot"></span><a href="/categories/%E9%9A%8F%E7%AC%94/" class="button">随笔</a>
+
+ 
+        
+    
+     
+    <span id="busuanzi_container_page_pv" hidden>
+        <span class="separate-dot"></span>
+        <span></span>
+        <span id="busuanzi_value_page_pv"></span>
+        <span>Views</span>
+    </span>
+
+
+
+ 
+
+ 
+    </div>
+</div>
+
+
+    <aside class="post-side">
+        <div class="post-side__toc">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E8%A1%B7"><span class="toc-text">初衷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-text">内容</span></a></li></ol>
+        </div>
+    </aside>
+    <a class="btn-toc button" id="btn-toc" tabindex="0">
+        <svg viewBox="0 0 1024 1024" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M128 256h64V192H128zM320 256h576V192H320zM128 544h64v-64H128zM320 544h576v-64H320zM128 832h64v-64H128zM320 832h576v-64H320z" fill="currentColor"></path>
+        </svg>
+    </a>
+    <div class="toc-menus" id="toc-menus">
+        <div class="toc-title">Article Directory</div>
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E8%A1%B7"><span class="toc-text">初衷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AE%B9"><span class="toc-text">内容</span></a></li></ol>
+    </div>
+
+
+<article class="post post__with-toc content-card">
+    <div class="post__header"></div>
+    <div class="post__content">
+        <p>这是我博客的第一篇文章，我想借此机会简单说明这个平台存在的意义，以及未来希望与你共同探索的方向。</p>
+<h3 id="初衷"><a href="#初衷" class="headerlink" title="初衷"></a>初衷</h3><p>这里会存放我学习技术、阅读书籍或实践项目时的思考与总结。无论是代码片段、工具使用心得，还是对某个领域的阶段性理解，都希望通过文字沉淀下来，既是自我复盘，也希望能为偶然路过的你提供一丝灵感。</p>
+<h3 id="内容"><a href="#内容" class="headerlink" title="内容"></a>内容</h3><p>目前的计划包括但不限于</p>
+<ul>
+<li>技术实践：如个人开发难点记录、学习新鲜技术的开发心得。</li>
+<li>读书笔记：技术书籍或文学经典著作的摘录与思考。</li>
+<li>生活随笔：偶尔也会跳出代码，聊聊旅行、摄影或其他兴趣领域的尝试。</li>
+</ul>
+<p>这个博客更像是一个“数字笔记本”，不求面面俱到，但求真诚与实用。如果其中的某段文字能为你节省时间、启发思路，或仅仅是让你觉得“原来有人和我遇到过同样的问题”，那便是它最大的价值。</p>
+<p>如果你对某篇文章有疑问、补充或不同见解，欢迎留下评论。由于系统依赖GitHub仓库，初次评论可能需要简单的初始化操作，感谢你的理解。</p>
+
+    </div>
+    
+    <div class="post__license">
+        <p>
+            <strong>Author: </strong>Yanko
+        </p>
+        <p>
+            <strong>
+                Permalink: 
+            </strong>
+            <a href="https://74hz.github.io/article/c9a6c86b3515/">https://74hz.github.io/article/c9a6c86b3515/</a>
+        </p>
+        
+            <strong>
+                <p>如需转载或参考本文内容，请注明出处。</p>
+
+            </strong>
+        
+    </div>
+ 
+    <div class="post-footer__meta"><p>updated at 2025-10-11</p></div> 
+    <div class="post-entry__tags"></div> 
+</article>
+
+
+    <div class="nav">
+        <div class="nav__prev">
+            
+                <a href="/article/274a96aab328/" class="nav__link">
+                    <div>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M589.088 790.624L310.464 512l278.624-278.624 45.248 45.248L400.96 512l233.376 233.376z" fill="#808080"></path></svg>
+                    </div>
+                    <div>
+                        <div class="nav__label">
+                            Previous Post
+                        </div>
+                        <div class="nav__title">
+                            Tauri MacOS应用构建指南：从打包、代码签名到公证实践
+                        </div>
+                    </div>
+                </a>
+            
+        </div>
+        <div class="nav__next">
+            
+        </div>
+    </div>
+
+
+
+    <div class="post__comments post__with-toc content-card" id="comment">
+        
+    <h4>Comments</h4>
+    
+    
+    
+    
+    
+    <div class="comments-container">
+        <div id="giscus_container"></div>
+
+        <script>
+            const THEME_AUTO_KEY = 'auto';
+            const THEME_SCHEME_CACHE_KEY = 'user-color-scheme';
+            const containerEl = document.getElementById('giscus_container');
+
+            // 如果是theme：auto，则监听user-color-scheme变更用以动态调整评论组件主题
+            if (THEME_AUTO_KEY === 'auto') {
+                const originalSetItem = localStorage.setItem;
+
+                localStorage.setItem = function(key, value) {
+                    originalSetItem.apply(this, [key, value]);
+
+                    if (THEME_SCHEME_CACHE_KEY === key) {
+                        loadCommentComponent();
+                    }
+                };
+            }
+
+            loadCommentComponent();
+
+            /**
+             * @description 载入评论组件
+             */
+            function loadCommentComponent() {
+                // 清空评论组件容器
+                while (containerEl.firstChild) {
+                    containerEl.removeChild(containerEl.firstChild);
+                }
+
+                const scriptEl = createGiscusScript();
+
+                if (THEME_AUTO_KEY === scriptEl.getAttribute('data-theme')) {
+                    const isDark = window.matchMedia("(prefers-color-scheme: dark)")?.matches;
+                    const theme = localStorage.getItem(THEME_SCHEME_CACHE_KEY) || (isDark ? 'dark' : 'light');
+                    scriptEl.setAttribute('data-theme', theme);
+                }
+
+                containerEl.append(scriptEl);
+            }
+
+            /**
+             * @description 创建Giscus评论组件Script
+             * @returns {HTMLScriptElement}
+             */
+            function createGiscusScript() {
+                const scriptEl = document.createElement('script');
+
+                scriptEl.setAttribute('src', 'https://giscus.app/client.js');
+                scriptEl.setAttribute('data-repo', '74hz/74hz.github.io');
+                scriptEl.setAttribute('data-repo-id', 'R_kgDOMuHdAw');
+                scriptEl.setAttribute('data-category', 'Announcements');
+                scriptEl.setAttribute('data-category-id', 'DIC_kwDOMuHdA84CiVzy');
+                scriptEl.setAttribute('data-mapping', 'pathname');
+                scriptEl.setAttribute('data-strict', '1');
+                scriptEl.setAttribute('data-reactions-enabled', '1');
+                scriptEl.setAttribute('data-emit-metadata', '0');
+                scriptEl.setAttribute('data-input-position', 'top');
+                scriptEl.setAttribute('data-theme', 'auto' );
+                scriptEl.setAttribute('data-lang', 'zh-CN');
+                scriptEl.setAttribute('data-loading', 'lazy');
+                scriptEl.setAttribute('crossorigin', 'anonymous');
+                scriptEl.setAttribute('async', '');
+
+                return scriptEl;
+            }
+        </script>
+    </div>
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+    </div>
+
+
+
+</main>
+
+            <footer class="footer">
+     
+    <a href="#" class="button" id="b2t" aria-label="Back to Top" title="Back to Top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="32" height="32">
+            <path d="M233.376 722.752L278.624 768 512 534.624 745.376 768l45.248-45.248L512 444.128zM192 352h640V288H192z" fill="currentColor"></path>
+        </svg>
+    </a>
+
+    
+
+
+    
+    
+    
+    
+ 
+ 
+
+ 
+    
+    
+<!--    <p>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme - <a href="https://github.com/ChrAlpha/hexo-theme-cards" target="_blank">Cards</a></p>-->
+</footer>
+
+        </div>
+        
+    <script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js"></script>
+    <script>
+        window.lazyLoadOptions = {
+            elements_selector: ".lazy",
+            threshold: 0
+        };
+    </script>
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+        data-cf-beacon='{"token": "f51baaf9791c4b7fbb0b3d27699d779c"}'></script>
+    </script>
+    
+
+ 
+
+
+
+ 
+
+
+    
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+    
+
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+
+
+    </body>
+</html>
